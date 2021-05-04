@@ -13,9 +13,9 @@ def parse_param(name, doc, has_default=False, default=None, type_=None):
     desc['description'] = ''
     desc['type'] = None
 
-    if has_default:
+    if default != inspect._empty:
         desc['default'] = default
-    if type_ is not None:
+    if type_  != inspect._empty:
         desc['type'] = type_
     
     if doc is not None:
@@ -37,11 +37,11 @@ def parse_function(fun, doc=None):
     desc['long_description'] = doc.long_description
 
     # Params
-    argspec = inspect.getfullargspec(fun)
-    if argspec.varargs:
-        print('[{}] Varargs detected. Not supported by ACME yet.')
-    if argspec.varkw:
-        print('[{}] Varkwargs detected. Not supported by ACME yet.')
+    signature = inspect.signature(fun)
+    #if argspec.varargs:
+    #    print('[{}] Varargs detected. Not supported by ACME yet.')
+    #if argspec.varkw:
+    #    print('[{}] Varkwargs detected. Not supported by ACME yet.')
 
     doc_params = dict()
     if doc.params is not None:
@@ -49,26 +49,12 @@ def parse_function(fun, doc=None):
 
     desc['params'] = []
     # Positional args
-    argspec_defaults = argspec.defaults or []
-    defaults = {param: value for param, value in zip(argspec.args[::-1], argspec_defaults[::-1])}
-    for i, name in enumerate(argspec.args):
+    for name, parameter in signature.parameters.items():
         desc['params'].append(parse_param(
             name,
             doc_params.pop(name, None),
-            has_default=name in defaults,
-            default=defaults.get(name, None),
-            type_=argspec.annotations.get(name, None),
-        ))
-
-    # Keyword only args
-    kwonlydefaults = argspec.kwonlydefaults or dict()
-    for i, name in enumerate(argspec.kwonlyargs):
-        desc['params'].append(parse_param(
-            name,
-            doc_params.pop(name, None),
-            has_default=name in kwonlydefaults,
-            default=kwonlydefaults.get(name, None),
-            type_=argspec.annotations.get(name, None)
+            default=parameter.default,
+            type_=parameter.annotation,
         ))
 
     for doc_param in doc_params:
@@ -78,9 +64,9 @@ def parse_function(fun, doc=None):
     desc['returns'] = None
     ret_desc = dict()
 
-    if 'returns' in argspec.annotations:
+    if signature.return_annotation != inspect._empty:
         ret_desc['name'] = 'return'
-        ret_desc['type'] = argspec.annotations['return']
+        ret_desc['type'] = signature.return_annotation
 
     if doc.returns is not None:
         if doc.returns.return_name:
