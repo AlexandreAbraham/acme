@@ -1,0 +1,95 @@
+/* This file is the descriptor for the Custom Python Prediction algorithm test-plugin_my-algo */
+{
+    "meta" : {
+        // label: name of the algorithm as displayed, should be short
+        "label": "Custom algo test-plugin_my-algo",
+
+        // description: longer string to help end users understand what this algorithm is. Will be displayed in the algorithm page
+        "description": "This is the description of the Custom algo test-plugin_my-algo",
+
+        // icon: must be one of the FontAwesome 3.2.1 icons, complete list here at https://fontawesome.com/v3.2.1/icons/
+        "icon": "icon-puzzle-piece"
+    },
+    
+    // List of types of prediction for which the algorithm will be available.
+    // Possibles values are: ["BINARY_CLASSIFICATION", "MULTICLASS", "REGRESSION"]
+    "predictionTypes": ["REGRESSION"],
+
+    // Depending on the mode you select, DSS will handle or not the building of the grid from the params
+    // Possible values are ["NONE", "MANAGED", "CUSTOM"]
+    "gridSearchMode": "MANAGED",
+
+    // Whether the model supports or not sample weights for training. 
+    // If yes, the clf from `algo.py` must have a `fit(X, y, sample_weights=None)` method
+    // If not, sample weights are not applied on this algorithm, but if they are selected
+    // for training, they will be applied on scoring metrics and charts.
+    "supportsSampleWeights": true,
+
+    // Whether the model supports sparse matrice for fitting and predicting, 
+    // i.e. if the `clf` provided in `algo.py` accepts a sparse matrix as argument
+    // for its `fit` and `predict` methods
+    "acceptsSparseMatrix": false,
+
+    /* params:
+    DSS will generate a formular from this list of requested parameters.
+    Your component code can then access the value provided by users using the "name" field of each parameter.
+
+    Available parameter types include:
+    STRING, INT, DOUBLE, BOOLEAN, DATE, SELECT, TEXTAREA, PRESET and others.
+
+    Besides, if the parameters are to be used to build the grid search, you must add a `gridParam` field and set it to true.
+
+    For the full list and for more details, see the documentation: https://doc.dataiku.com/dss/latest/plugins/reference/params.html
+
+    Below is an example of parameters for an AdaBoost regressor from scikit learn.
+    */
+    "params": [
+        {
+            "name": "n_estimators",
+            "label": "num estimators",
+            "description": "The maximum number of estimators at which boosting is terminated. In case of perfect fit, the learning procedure is stopped early.",
+            "type": "DOUBLES",
+            "defaultValue": [50, 100],
+            "allowDuplicates": false,
+            "gridParam": true
+        },
+        {
+            "name": "learning_rate",
+            "label": "learning rate",
+            "description":"Lower values slow down convergence and can make the model more robust. Typical values: 0.01 - 0.3",
+            "type": "DOUBLES",
+            "defaultValue": [0.2],
+            "allowDuplicates": false,
+            "gridParam": true
+        },
+        {
+            "name": "loss",
+            "label": "loss",
+            "description": "Type of loss used.",
+            "type": "MULTISELECT",
+            "defaultValue": ["linear"],
+            "selectChoices": [
+                {
+                    "value":"linear",
+                    "label":"linear"
+                },
+                {
+                    "value":"square",
+                    "label":"square"
+                },
+                {
+                    "value":"exponential",
+                    "label": "exponential"
+                }
+            ],
+            "gridParam": true
+        },
+        {
+            "name": "random_state",
+            "label": "Random state",
+            "description": "Using a fixed random seed allows for reproducible result.",
+            "type": "DOUBLE",
+            "defaultValue": 1337
+        }      
+    ]
+}
