@@ -31,7 +31,7 @@ class TestGenerator:
     def test_write_plugin_json(self, refined_function):
         plugin_generator = PluginGenerator(refined_function)
         plugin_generator.write()
-        with open(f"{plugin_generator.repository}/plugin.json") as plugin_json_file:
+        with open(f"{plugin_generator.plugin_repository}/plugin.json") as plugin_json_file:
             plugin_dict = json.load(plugin_json_file)
         assert plugin_dict == {'id': 'AdaBoostClassifier', 'version': '0.0.1', 'meta': {'label': 'AdaBoostClassifier',
                                                                                         'description': 'An AdaBoost [1] classifier is a meta-estimator that '
@@ -49,7 +49,7 @@ class TestGenerator:
     def test_write_recipe_json(self, refined_function):
         plugin_generator = PluginGenerator(refined_function)
         plugin_generator.write()
-        with open(f"{plugin_generator.repository}/python-prediction-algos/AdaBoostClassifier_binary_classification/algo.json") as algo_json_file:
+        with open(f"{plugin_generator.plugin_repository}/python-prediction-algos/AdaBoostClassifier_binary_classification/algo.json") as algo_json_file:
             algo_dict = json.load(algo_json_file)
         assert algo_dict == {'acceptsSparseMatrix': False,
                              'gridSearchMode': 'MANAGED',
