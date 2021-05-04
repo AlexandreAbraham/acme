@@ -15,6 +15,8 @@ def parse_param(name, doc, has_default=False, default=None, type_=None):
 
     if default != inspect._empty:
         desc['default'] = default
+        if default is not None:
+            desc['type'] = type(default)
     if type_  != inspect._empty:
         desc['type'] = type_
     
