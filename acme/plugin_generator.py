@@ -1,7 +1,8 @@
 import json
 from pathlib import Path
+import shutil
 
-from acme.acme_constants import TYPE_MAPPING
+from acme.acme_constants import TYPE_MAPPING, python_template
 
 
 class RefinedFunction:
@@ -17,6 +18,7 @@ class RefinedFunction:
     prediction_type = "BINARY_CLASSIFICATION"
     parameters = [{"name": "n_estimators", "description": "The maximum number of estimators at which boosting is terminated. In case of perfect fit, "
                                                           "the learning procedure is stopped early.", "type": "int", "default_value": 50}]
+    import_name = "sklearn.ensemble"
 
 
 class PluginGenerator:
@@ -30,6 +32,8 @@ class PluginGenerator:
         algorithm_name = f"{self.refined_module.module_name}_{self.refined_module.prediction_type.lower()}"
         Path(f"{self.repository}/python-prediction-algos/{algorithm_name}").mkdir(parents=True, exist_ok=True)
         self._write_algo_json(algorithm_name)
+        self._write_algo_py(algorithm_name)
+        shutil.make_archive(f"dss-plugin-{self.refined_module.module_name}", "zip",self.repository)
 
     def _write_plugin_json(self):
         with open("../templates/plugin_base/plugin.json") as plugin_json_file:
@@ -46,20 +50,23 @@ class PluginGenerator:
             algo_dict = json.load(algo_json_file)
         algo_dict["meta"]["label"] = self.refined_module.module_name
         algo_dict["meta"]["description"] = self.refined_module.module_short_description
-        algo_dict["predictionTypes"] = self.refined_module.prediction_type
+        algo_dict["predictionTypes"] = [self.refined_module.prediction_type]
         for parameter in self.refined_module.parameters:
-            algo_dict["params"] = self._add_parameter(parameter)
+            algo_dict["params"].append(self._format_parameter(parameter))
         with open(f"{self.repository}/python-prediction-algos/{algorithm_name}/algo.json", "w") as outfile:
             json.dump(algo_dict, outfile)
 
-    def _write_algo_py(self):
-        pass
+    def _write_algo_py(self, algorithm_name):
+        import_statement = f"from {self.refined_module.import_name} import {self.refined_module.module_name}"
+        formatted_code = python_template.format(import_statement=import_statement, module_name=self.refined_module.module_name)
+        with open(f"{self.repository}/python-prediction-algos/{algorithm_name}/algo.py", "w") as outfile:
+            outfile.write(formatted_code)
 
-    def _add_parameter(self, new_parameter):
+    def _format_parameter(self, new_parameter):
         if new_parameter.get("type") in TYPE_MAPPING:
             parameter_type = TYPE_MAPPING[new_parameter.get("type")]
         else:
             parameter_type = "STRING"
-        formatted_parameters = {"name": new_parameter["name"], "description": new_parameter["description"], "default_value": new_parameter["default_value"],
+        formatted_parameter = {"name": new_parameter["name"], "description": new_parameter["description"], "default_value": [new_parameter["default_value"]],
                                 "type": parameter_type}
-        return formatted_parameters
+        return formatted_parameter

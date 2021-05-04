@@ -9,53 +9,5 @@
     "gridSearchMode": "MANAGED",
     "supportsSampleWeights": true,
     "acceptsSparseMatrix": false,
-    "params": [
-        {
-            "name": "n_estimators",
-            "label": "num estimators",
-            "description": "The maximum number of estimators at which boosting is terminated. In case of perfect fit, the learning procedure is stopped early.",
-            "type": "DOUBLES",
-            "defaultValue": [50, 100],
-            "allowDuplicates": false,
-            "gridParam": true
-        },
-        {
-            "name": "learning_rate",
-            "label": "learning rate",
-            "description":"Lower values slow down convergence and can make the model more robust. Typical values: 0.01 - 0.3",
-            "type": "DOUBLES",
-            "defaultValue": [0.2],
-            "allowDuplicates": false,
-            "gridParam": true
-        },
-        {
-            "name": "loss",
-            "label": "loss",
-            "description": "Type of loss used.",
-            "type": "MULTISELECT",
-            "defaultValue": ["linear"],
-            "selectChoices": [
-                {
-                    "value":"linear",
-                    "label":"linear"
-                },
-                {
-                    "value":"square",
-                    "label":"square"
-                },
-                {
-                    "value":"exponential",
-                    "label": "exponential"
-                }
-            ],
-            "gridParam": true
-        },
-        {
-            "name": "random_state",
-            "label": "Random state",
-            "description": "Using a fixed random seed allows for reproducible result.",
-            "type": "DOUBLE",
-            "defaultValue": 1337
-        }
-    ]
+    "params": []
 }
