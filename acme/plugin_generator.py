@@ -1,29 +1,13 @@
 import json
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 from acme.acme_constants import TYPE_MAPPING, python_template
 
 
-class RefinedFunction:
-    module_name = "AdaBoostClassifier"
-    module_short_description = "AdaBoost classifier"
-    module_long_description = "An AdaBoost [1] classifier is a meta-estimator that begins by fitting a classifier on the original dataset and " \
-                              "then fits additional " \
-                              "" \
-                              "" \
-                              "copies of the classifier on the same dataset but where the weights of incorrectly classified instances are adjusted such that " \
-                              "subsequent classifiers focus more on difficult cases."
-    doc_url = "https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.AdaBoostClassifier.html"
-    prediction_type = "BINARY_CLASSIFICATION"
-    parameters = [{"name": "n_estimators", "description": "The maximum number of estimators at which boosting is terminated. In case of perfect fit, "
-                                                          "the learning procedure is stopped early.", "type": "int", "default_value": 50}]
-    import_name = "sklearn.ensemble"
-
-
 class PluginGenerator:
-    def __init__(self, RefinedFunction):
-        self.refined_module = RefinedFunction
+    def __init__(self, refined_function):
+        self.refined_module = refined_function
         self.repository = f"../dss-plugin-{self.refined_module.module_name}"
 
     def write(self):
@@ -33,7 +17,7 @@ class PluginGenerator:
         Path(f"{self.repository}/python-prediction-algos/{algorithm_name}").mkdir(parents=True, exist_ok=True)
         self._write_algo_json(algorithm_name)
         self._write_algo_py(algorithm_name)
-        shutil.make_archive(f"dss-plugin-{self.refined_module.module_name}", "zip",self.repository)
+        shutil.make_archive(f"dss-plugin-{self.refined_module.module_name}", "zip", self.repository)
 
     def _write_plugin_json(self):
         with open("../templates/plugin_base/plugin.json") as plugin_json_file:
@@ -68,5 +52,5 @@ class PluginGenerator:
         else:
             parameter_type = "STRING"
         formatted_parameter = {"name": new_parameter["name"], "description": new_parameter["description"], "default_value": [new_parameter["default_value"]],
-                                "type": parameter_type}
+                               "type": parameter_type}
         return formatted_parameter
