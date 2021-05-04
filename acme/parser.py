@@ -2,14 +2,26 @@ from docstring_parser import parse
 import inspect
 
 
-def parse_param(param):
-    # TODO check with inspection
+def guess_type(type):
+    return object
+
+
+def parse_param(name, doc, has_default=False, default=None, type_=None):
 
     desc = dict()
-    desc['name'] = param.arg_name
-    desc['description'] = param.description
-    desc['default'] = param.default
-    desc['type'] = param.type_name
+    desc['name'] = name
+    desc['description'] = ''
+    desc['type'] = None
+
+    if has_default:
+        desc['default'] = default
+    if type_ is not None:
+        desc['type'] = type_
+    
+    if doc is not None:
+        desc['description'] = doc.description
+        if desc['type'] is None:
+            desc['type'] = guess_type(doc.type_name)
 
     return desc
 
@@ -23,18 +35,61 @@ def parse_function(fun, doc=None):
     doc = parse(fun.__doc__ if doc is None else doc)
     desc['short_description'] = doc.short_description
     desc['long_description'] = doc.long_description
-    desc['params'] = []
+
+    # Params
+    argspec = inspect.getfullargspec(fun)
+    if argspec.varargs:
+        print('[{}] Varargs detected. Not supported by ACME yet.')
+    if argspec.varkw:
+        print('[{}] Varkwargs detected. Not supported by ACME yet.')
+
+    doc_params = dict()
     if doc.params is not None:
-        desc['params'] = [parse_param(param) for param in doc.params]
+        doc_params = {param.arg_name: param for param in doc.params}
+
+    desc['params'] = []
+    # Positional args
+    argspec_defaults = argspec.defaults or []
+    defaults = {param: value for param, value in zip(argspec.args[::-1], argspec_defaults[::-1])}
+    for i, name in enumerate(argspec.args):
+        desc['params'].append(parse_param(
+            name,
+            doc_params.pop(name, None),
+            has_default=name in defaults,
+            default=defaults.get(name, None),
+            type_=argspec.annotations.get(name, None),
+        ))
+
+    # Keyword only args
+    kwonlydefaults = argspec.kwonlydefaults or dict()
+    for i, name in enumerate(argspec.kwonlyargs):
+        desc['params'].append(parse_param(
+            name,
+            doc_params.pop(name, None),
+            has_default=name in kwonlydefaults,
+            default=kwonlydefaults.get(name, None),
+            type_=argspec.annotations.get(name, None)
+        ))
+
+    for doc_param in doc_params:
+        print('[{}] Doc argument missing in signature: {}'.format(desc['name'], doc_param))
 
     # Parse returns
     desc['returns'] = None
-    if doc.returns is not None:
-        ret_desc = dict()
-        ret_desc['name'] = doc.returns.return_name
-        ret_desc['description'] = doc.returns.description
-        ret_desc['type'] = doc.returns.type_name
+    ret_desc = dict()
 
+    if 'returns' in argspec.annotations:
+        ret_desc['name'] = 'return'
+        ret_desc['type'] = argspec.annotations['return']
+
+    if doc.returns is not None:
+        if doc.returns.return_name:
+            ret_desc['name'] = doc.returns.return_name
+        ret_desc['description'] = doc.returns.description
+        if not 'type' in ret_desc:
+            ret_desc['type'] = guess_type(doc.returns.type_name)
+
+    if len(ret_desc) > 0:
         desc['returns'] = ret_desc
 
     return desc
