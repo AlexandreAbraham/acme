@@ -59,5 +59,5 @@ class PluginGenerator:
         formatted_parameter = {"name": new_parameter["name"], "description": new_parameter["description"],
                                "type": parameter_type}
         if new_parameter["default_value"]:
-            formatted_parameter["default_value"] = default_value
+            formatted_parameter["defaultValue"] = default_value
         return formatted_parameter
