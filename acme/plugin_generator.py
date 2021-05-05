@@ -2,7 +2,8 @@ import json
 import shutil
 from pathlib import Path
 
-from acme.acme_constants import TYPE_MAPPING, python_template
+from acme.acme_constants import python_recipe_template
+from acme.plugin_parameter import IntPluginParameter, DoublesPluginParameter, StringsPluginParameter
 
 
 class PluginGenerator:
@@ -31,7 +32,7 @@ class PluginGenerator:
         plugin_dict["meta"]["description"] = self.refined_module.module_long_description
         plugin_dict["meta"]["url"] = self.doc_url
         with open(f"{self.plugin_repository}/plugin.json", "w") as outfile:
-            json.dump(plugin_dict, outfile)
+            json.dump(plugin_dict, outfile, indent=4)
 
     def _write_algo_json(self, algorithm_name):
         with open(f"{self.template_repository}/plugin_model/python-prediction-algos/test-plugin_my-algo/algo.json") as algo_json_file:
@@ -46,21 +47,19 @@ class PluginGenerator:
 
     def _write_algo_py(self, algorithm_name):
         import_statement = f"from {self.import_name} import {self.refined_module.module_name}"
-        formatted_code = python_template.format(import_statement=import_statement, module_name=self.refined_module.module_name)
+        formatted_code = python_recipe_template.format(import_statement=import_statement, module_name=self.refined_module.module_name)
         with open(f"{self.plugin_repository}/python-prediction-algos/{algorithm_name}/algo.py", "w") as outfile:
             outfile.write(formatted_code)
 
     def _format_parameter(self, new_parameter):
-        if new_parameter.get("type") in TYPE_MAPPING:
-            parameter_type = TYPE_MAPPING[new_parameter.get("type")]
-            if new_parameter["default_value"]:
-                default_value = [new_parameter["default_value"]]
+        if accepts_unique_int_value(new_parameter):
+            formatted_parameter = IntPluginParameter(new_parameter)
+        elif new_parameter.get("type") in [int, float]:
+            formatted_parameter = DoublesPluginParameter(new_parameter)
         else:
-            parameter_type = "STRING"
-            if new_parameter["default_value"]:
-                default_value = str(new_parameter["default_value"])
-        formatted_parameter = {"name": new_parameter["name"], "description": new_parameter["description"],
-                               "type": parameter_type}
-        if new_parameter["default_value"]:
-            formatted_parameter["defaultValue"] = default_value
-        return formatted_parameter
+            formatted_parameter = StringsPluginParameter(new_parameter)
+        return vars(formatted_parameter)
+
+
+def accepts_unique_int_value(parameter):
+    return parameter.get("name") == "random_state"
