@@ -13,8 +13,8 @@ class PluginParameter:
 
 
 class DoublesPluginParameter(PluginParameter):
-    def __init__(self, default_value):
-        super().__init__(default_value)
+    def __init__(self, raw_parameter):
+        super().__init__(raw_parameter)
         self.type = DSSType.DOUBLES.value
 
     def format_default_value(self, default_value):
@@ -22,8 +22,8 @@ class DoublesPluginParameter(PluginParameter):
 
 
 class StringsPluginParameter(PluginParameter):
-    def __init__(self, default_value):
-        super().__init__(default_value)
+    def __init__(self, raw_parameter):
+        super().__init__(raw_parameter)
         self.type = DSSType.STRINGS.value
 
     def format_default_value(self, default_value):
@@ -31,8 +31,8 @@ class StringsPluginParameter(PluginParameter):
 
 
 class IntPluginParameter(PluginParameter):
-    def __init__(self, default_value):
-        super().__init__(default_value)
+    def __init__(self, raw_parameter):
+        super().__init__(raw_parameter)
         self.type = DSSType.INT.value
 
     def format_default_value(self, default_value):
