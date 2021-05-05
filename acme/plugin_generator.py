@@ -2,14 +2,14 @@ import json
 import shutil
 from pathlib import Path
 
-from acme.acme_constants import TYPE_MAPPING, python_template
+from acme.acme_constants import TYPE_MAPPING, python_recipe_template
 
 
 class PluginGenerator:
     def __init__(self, refined_function):
         self.refined_module = refined_function
         self.plugin_repository = f"dss-plugin-{self.refined_module.module_name}"
-        self.template_repository = "templates"
+        self.template_repository = "../templates"
 
     def write(self):
         Path(self.plugin_repository).mkdir(parents=True, exist_ok=True)
@@ -43,7 +43,7 @@ class PluginGenerator:
 
     def _write_algo_py(self, algorithm_name):
         import_statement = f"from {self.refined_module.import_name} import {self.refined_module.module_name}"
-        formatted_code = python_template.format(import_statement=import_statement, module_name=self.refined_module.module_name)
+        formatted_code = python_recipe_template.format(import_statement=import_statement, module_name=self.refined_module.module_name)
         with open(f"{self.plugin_repository}/python-prediction-algos/{algorithm_name}/algo.py", "w") as outfile:
             outfile.write(formatted_code)
 
@@ -51,13 +51,15 @@ class PluginGenerator:
         if new_parameter.get("type") in TYPE_MAPPING:
             parameter_type = TYPE_MAPPING[new_parameter.get("type")]
             if new_parameter["default_value"]:
-                default_value = [new_parameter["default_value"]]
+                default_value = new_parameter["default_value"]
         else:
-            parameter_type = "STRING"
+            parameter_type = "STRINGS"
             if new_parameter["default_value"]:
                 default_value = str(new_parameter["default_value"])
+        if new_parameter.get("name") == "random_state":
+            parameter_type = "INT"
         formatted_parameter = {"name": new_parameter["name"], "description": new_parameter["description"],
                                "type": parameter_type}
         if new_parameter["default_value"]:
-            formatted_parameter["defaultValue"] = default_value
+            formatted_parameter["defaultValue"] = [default_value]
         return formatted_parameter

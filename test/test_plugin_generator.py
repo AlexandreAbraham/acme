@@ -18,7 +18,7 @@ class RefinedFunction:
     doc_url = "https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.AdaBoostClassifier.html"
     prediction_type = "BINARY_CLASSIFICATION"
     parameters = [{"name": "n_estimators", "description": "The maximum number of estimators at which boosting is terminated. In case of perfect fit, "
-                                                          "the learning procedure is stopped early.", "type": "int", "default_value": 50}]
+                                                          "the learning procedure is stopped early.", "type": int, "default_value": 50}]
     import_name = "sklearn.ensemble"
 
 
@@ -46,17 +46,19 @@ class TestGenerator:
                                                                                             'https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.AdaBoostClassifier.html',
                                                                                         'licenseInfo': 'Apache Software License'}}
 
-    def test_write_recipe_json(self, refined_function):
+    def test_write_algo_json(self, refined_function):
         plugin_generator = PluginGenerator(refined_function)
         plugin_generator.write()
         with open(f"{plugin_generator.plugin_repository}/python-prediction-algos/AdaBoostClassifier_binary_classification/algo.json") as algo_json_file:
             algo_dict = json.load(algo_json_file)
+
+        print(algo_dict)
         assert algo_dict == {'acceptsSparseMatrix': False,
                              'gridSearchMode': 'MANAGED',
                              'meta': {'description': 'AdaBoost classifier',
                                       'icon': 'icon-puzzle-piece',
                                       'label': 'AdaBoostClassifier'},
-                             'params': [{'default_value': [50],
+                             'params': [{'defaultValue': [50],
                                          'description': 'The maximum number of estimators at which '
                                                         'boosting is terminated. In case of perfect fit, '
                                                         'the learning procedure is stopped early.',
