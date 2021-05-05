@@ -16,12 +16,11 @@ class PluginGenerator:
         self.template_repository = "templates"
 
     def write(self):
-        Path(self.plugin_repository).mkdir(parents=True, exist_ok=True)
         self._write_plugin_json()
         algorithm_name = f"{self.refined_module.module_name}_{self.prediction_type.lower()}"
-        Path(f"{self.plugin_repository}/python-prediction-algos/{algorithm_name}").mkdir(parents=True, exist_ok=True)
         self._write_algo_json(algorithm_name)
         self._write_algo_py(algorithm_name)
+        self._write_python_lib()
         shutil.make_archive(f"dss-plugin-{self.refined_module.module_name}", "zip", self.plugin_repository)
 
     def _write_plugin_json(self):
@@ -31,6 +30,8 @@ class PluginGenerator:
         plugin_dict["meta"]["label"] = self.refined_module.module_name
         plugin_dict["meta"]["description"] = self.refined_module.module_long_description
         plugin_dict["meta"]["url"] = self.doc_url
+
+        Path(self.plugin_repository).mkdir(parents=True, exist_ok=True)
         with open(f"{self.plugin_repository}/plugin.json", "w") as outfile:
             json.dump(plugin_dict, outfile, indent=4)
 
@@ -42,6 +43,8 @@ class PluginGenerator:
         algo_dict["predictionTypes"] = [self.prediction_type]
         for parameter in self.refined_module.parameters:
             algo_dict["params"].append(self._format_parameter(parameter))
+
+        Path(f"{self.plugin_repository}/python-prediction-algos/{algorithm_name}").mkdir(parents=True, exist_ok=True)
         with open(f"{self.plugin_repository}/python-prediction-algos/{algorithm_name}/algo.json", "w") as outfile:
             json.dump(algo_dict, outfile, indent=4)
 
@@ -50,6 +53,14 @@ class PluginGenerator:
         formatted_code = python_recipe_template.format(import_statement=import_statement, module_name=self.refined_module.module_name)
         with open(f"{self.plugin_repository}/python-prediction-algos/{algorithm_name}/algo.py", "w") as outfile:
             outfile.write(formatted_code)
+
+    def _write_python_lib(self):
+        f = open(f"{self.template_repository}/plugin_base/python-lib/testplugin/dku_utils.py", "r")
+        util_script = f.read()
+
+        Path(f"{self.plugin_repository}/python-lib").mkdir(parents=True, exist_ok=True)
+        with open(f"{self.plugin_repository}/python-lib/dku_utils.py", "w") as outfile:
+            outfile.write(util_script)
 
     def _format_parameter(self, new_parameter):
         if accepts_unique_int_value(new_parameter):

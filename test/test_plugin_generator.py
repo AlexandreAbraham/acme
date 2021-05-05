@@ -68,3 +68,8 @@ class TestGenerator:
         plugin_generator.write()
         with pytest.raises(ModuleNotFoundError):
             _ = importlib.import_module('dss-plugin-AdaBoostClassifier.python-prediction-algos.AdaBoostClassifier_binary_classification.algo', None)
+
+    def test_write_python_lib(self,refined_function):
+        plugin_generator = PluginGenerator("sklearn.ensemble", "BINARY_CLASSIFICATION", refined_function)
+        plugin_generator.write()
+
