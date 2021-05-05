@@ -42,7 +42,7 @@ class PluginGenerator:
         for parameter in self.refined_module.parameters:
             algo_dict["params"].append(self._format_parameter(parameter))
         with open(f"{self.plugin_repository}/python-prediction-algos/{algorithm_name}/algo.json", "w") as outfile:
-            json.dump(algo_dict, outfile)
+            json.dump(algo_dict, outfile, indent=4)
 
     def _write_algo_py(self, algorithm_name):
         import_statement = f"from {self.import_name} import {self.refined_module.module_name}"
