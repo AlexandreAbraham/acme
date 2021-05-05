@@ -1,9 +1,61 @@
 from docstring_parser import parse
 import inspect
+from .acme_constants import DSSType
+import re
+from ast import literal_eval
 
 
-def guess_type(name, type):
-    return object
+PATTERNS = [
+    ('int', DSSType.INT),
+    ('integer', DSSType.INT),
+    ('float', DSSType.DOUBLES),
+    ('double', DSSType.DOUBLES),
+    ('str', DSSType.STRINGS),
+    ('string', DSSType.STRINGS)
+]
+
+
+def guess_type(name, default, type_):
+    # We do our best to find types among int, float/double, strings.
+    if default is not None:
+        if type(default) == int:
+            return DSSType.INT
+        if type(default) == float:
+            return DSSType.DOUBLES
+        if type(default) == str:
+            return DSSType.STRINGS
+    
+    for pattern, dss_type in PATTERNS:
+        if type_ == pattern:
+            return dss_type
+        if re.search('^{}\W|\W{}\W|\W{}$'.format(pattern, pattern, pattern), type_, re.I) is not None:
+            return dss_type 
+
+    return None
+
+
+def guess_specs(type_):
+    # We look for {elt, elt} or [elt, elt], elt being a number or a string
+    try:
+        match = re.match("\[[a-zA-Z'\",0-9\.\s]+\]", type_)
+        if match is not None:
+            value = literal_eval(match.group(0))
+            return value
+    except:
+        pass
+
+    try:
+        match = re.match("\{[a-zA-Z'\",0-9\.\s]+\}", type_)
+        if match is not None:
+            value = literal_eval(match.group(0))
+            return value
+    except:
+        pass
+
+    return None
+ 
+
+            
 
 
 def parse_param(name, doc, has_default=False, default=None, type_=None):
@@ -23,7 +75,7 @@ def parse_param(name, doc, has_default=False, default=None, type_=None):
     if doc is not None:
         desc['description'] = doc.description
         if desc['type'] is None:
-            desc['type'] = guess_type(name, doc.type_name)
+            desc['type'] = guess_type(name, desc.get('default', None), doc.type_name)
 
     return desc
 
@@ -40,10 +92,6 @@ def parse_function(fun, doc=None):
 
     # Params
     signature = inspect.signature(fun)
-    #if argspec.varargs:
-    #    print('[{}] Varargs detected. Not supported by ACME yet.')
-    #if argspec.varkw:
-    #    print('[{}] Varkwargs detected. Not supported by ACME yet.')
 
     doc_params = dict()
     if doc.params is not None:
@@ -67,9 +115,9 @@ def parse_function(fun, doc=None):
     # Parse returns
     desc['returns'] = None
     ret_desc = dict()
+    ret_desc['name'] = 'return'
 
     if signature.return_annotation != inspect._empty:
-        ret_desc['name'] = 'return'
         ret_desc['type'] = signature.return_annotation
 
     if doc.returns is not None:
@@ -77,7 +125,7 @@ def parse_function(fun, doc=None):
             ret_desc['name'] = doc.returns.return_name
         ret_desc['description'] = doc.returns.description
         if not 'type' in ret_desc:
-            ret_desc['type'] = guess_type(ret_desc['name'], doc.returns.type_name)
+            ret_desc['type'] = guess_type(ret_desc['name'], None, doc.returns.type_name)
 
     if len(ret_desc) > 0:
         desc['returns'] = ret_desc
