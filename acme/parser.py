@@ -2,7 +2,7 @@ from docstring_parser import parse
 import inspect
 
 
-def guess_type(type):
+def guess_type(name, type):
     return object
 
 
@@ -23,7 +23,7 @@ def parse_param(name, doc, has_default=False, default=None, type_=None):
     if doc is not None:
         desc['description'] = doc.description
         if desc['type'] is None:
-            desc['type'] = guess_type(doc.type_name)
+            desc['type'] = guess_type(name, doc.type_name)
 
     return desc
 
@@ -52,6 +52,8 @@ def parse_function(fun, doc=None):
     desc['params'] = []
     # Positional args
     for name, parameter in signature.parameters.items():
+        if name == 'self':
+            continue
         desc['params'].append(parse_param(
             name,
             doc_params.pop(name, None),
@@ -75,7 +77,7 @@ def parse_function(fun, doc=None):
             ret_desc['name'] = doc.returns.return_name
         ret_desc['description'] = doc.returns.description
         if not 'type' in ret_desc:
-            ret_desc['type'] = guess_type(doc.returns.type_name)
+            ret_desc['type'] = guess_type(ret_desc['name'], doc.returns.type_name)
 
     if len(ret_desc) > 0:
         desc['returns'] = ret_desc
