@@ -16,10 +16,8 @@ class RefinedFunction:
                               "copies of the classifier on the same dataset but where the weights of incorrectly classified instances are adjusted such that " \
                               "subsequent classifiers focus more on difficult cases."
     doc_url = "https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.AdaBoostClassifier.html"
-    prediction_type = "BINARY_CLASSIFICATION"
     parameters = [{"name": "n_estimators", "description": "The maximum number of estimators at which boosting is terminated. In case of perfect fit, "
                                                           "the learning procedure is stopped early.", "type": int, "default_value": 50}]
-    import_name = "sklearn.ensemble"
 
 
 @pytest.fixture()
@@ -29,7 +27,7 @@ def refined_function():
 
 class TestGenerator:
     def test_write_plugin_json(self, refined_function):
-        plugin_generator = PluginGenerator(refined_function)
+        plugin_generator = PluginGenerator("sklearn.ensemble", "BINARY_CLASSIFICATION", refined_function)
         plugin_generator.write()
         with open(f"{plugin_generator.plugin_repository}/plugin.json") as plugin_json_file:
             plugin_dict = json.load(plugin_json_file)
@@ -42,17 +40,15 @@ class TestGenerator:
                                                                                                        'that subsequent classifiers focus more on difficult '
                                                                                                        'cases.',
                                                                                         'author': 'admin', 'icon': 'icon-puzzle-piece', 'tags': [],
-                                                                                        'url':
-                                                                                            'https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.AdaBoostClassifier.html',
+                                                                                        'url':'',
                                                                                         'licenseInfo': 'Apache Software License'}}
 
     def test_write_algo_json(self, refined_function):
-        plugin_generator = PluginGenerator(refined_function)
+        plugin_generator = PluginGenerator("sklearn.ensemble", "BINARY_CLASSIFICATION", refined_function)
         plugin_generator.write()
         with open(f"{plugin_generator.plugin_repository}/python-prediction-algos/AdaBoostClassifier_binary_classification/algo.json") as algo_json_file:
             algo_dict = json.load(algo_json_file)
 
-        print(algo_dict)
         assert algo_dict == {'acceptsSparseMatrix': False,
                              'gridSearchMode': 'MANAGED',
                              'meta': {'description': 'AdaBoost classifier',
@@ -68,7 +64,7 @@ class TestGenerator:
                              'supportsSampleWeights': True}
 
     def test_write_recipe_py(self, refined_function):
-        plugin_generator = PluginGenerator(refined_function)
+        plugin_generator = PluginGenerator("sklearn.ensemble", "BINARY_CLASSIFICATION", refined_function)
         plugin_generator.write()
         with pytest.raises(ModuleNotFoundError):
             _ = importlib.import_module('dss-plugin-AdaBoostClassifier.python-prediction-algos.AdaBoostClassifier_binary_classification.algo', None)

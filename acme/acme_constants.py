@@ -1,3 +1,5 @@
+from enum import Enum
+
 TYPE_MAPPING = {int: "DOUBLES", float: "DOUBLES"}
 
 python_recipe_template = u"""from dataiku.doctor.plugins.custom_prediction_algorithm import BaseCustomPredictionAlgorithm
@@ -13,3 +15,8 @@ class CustomPredictionAlgorithm(BaseCustomPredictionAlgorithm):
         return self.clf
 """
 
+
+class DSSType(Enum):
+    INT = "INT"
+    STRINGS = "STRINGS"
+    DOUBLES = "DOUBLES"
