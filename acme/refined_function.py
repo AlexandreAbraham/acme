@@ -8,16 +8,17 @@ class InteractiveRefiner:
         self.parameters_widgets = []
         self.boxes = []
         for param in parameters:
-            selected = wg.Checkbox(value=True)
-            type_ = wg.Combobox(description=param.get("name"), options=['int', 'float'])
-            default = wg.Text(description='Default', value=str(param.get("default")))
+            selected = wg.Checkbox(description=param.get("name"), value=True, indent=False)
+            type_ = wg.Dropdown(description='Type', options=['int', 'float', 'enum'])
+            # has_bounds = wg.Checkbox(description=param.get("name"), value=True, indent=False)
+            default = wg.Text(description='Default', value=str(param.get("default_value")))
             hbox = wg.HBox([selected, type_, default])
             self.parameters_widgets.append((selected, type_, default))
             self.boxes.append(hbox)
     
     def display(self):
         from IPython.display import display
-        display(self.boxes)
+        display(*self.boxes)
 
 
 
