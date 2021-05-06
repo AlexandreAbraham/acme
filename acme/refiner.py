@@ -106,8 +106,8 @@ class ModelRefiner:
 
     def _load(self, parsed_docstring):
 
-        self.module_short_description = parsed_docstring.get("short_description", "").rstrip()
-        self.module_long_description = parsed_docstring.get("long_description", "").rstrip()
+        self.module_short_description = format_description(parsed_docstring.get("short_description", ""))
+        self.module_long_description = format_description(parsed_docstring.get("long_description", ""))
         self.module_name = parsed_docstring['name']
         self.import_name = parsed_docstring.get('import_name', None)
         self.parameters = []
@@ -117,8 +117,8 @@ class ModelRefiner:
 
         init_docstring = parsed_docstring.get('functions', dict()).get('__init__', None)
         if init_docstring is not None:
-            self.module_short_description = init_docstring.get("short_description", self.module_short_description).rstrip()
-            self.module_long_description = init_docstring.get("long_description", self.module_long_description).rstrip()
+            self.module_short_description = format_description(init_docstring.get("short_description", self.module_short_description))
+            self.module_long_description = format_description(init_docstring.get("long_description", self.module_long_description))
             self.parameters = self._prepare_params(init_docstring.get("params", []))
 
     def _prepare_params(self, parameters):
@@ -167,6 +167,11 @@ class ModelRefiner:
                     param['specs'] = specs
             except:
                 pass
+
+
+def format_description(description):
+    if description:
+        return description.replace("\n", " ")
 
 
 def cast_string(s):

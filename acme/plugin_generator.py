@@ -2,9 +2,9 @@ import json
 import shutil
 from pathlib import Path
 
+from . import templates
 from .constants import python_recipe_template, DSSType, custom_fit_template, custom_predict_template, model_wrapper_template, macro_template
 from .plugin_parameter import IntPluginParameter, DoublesPluginParameter, StringsPluginParameter, MultiSelectPluginParameter
-from . import templates
 
 
 class PluginGenerator:
@@ -15,7 +15,7 @@ class PluginGenerator:
         self.refined_module = refined_function
         self.import_name = import_name or refined_function.import_name
         if self.import_name is None:
-            raise(ValueError('Import name could not be determined, please provide it manually.'))
+            raise (ValueError('Import name could not be determined, please provide it manually.'))
         self.prediction_type = prediction_type
         self.doc_url = doc_url
         self.plugin_repository = f"dss-plugin-{self.refined_module.module_name}"
@@ -41,7 +41,7 @@ class PluginGenerator:
             plugin_dict = json.load(plugin_json_file)
         plugin_dict["id"] = self.refined_module.module_name
         plugin_dict["meta"]["label"] = self.refined_module.module_name
-        plugin_dict["meta"]["description"] = self.refined_module.module_long_description.replace("\n", " ")
+        plugin_dict["meta"]["description"] = self.refined_module.module_long_description
         plugin_dict["meta"]["url"] = self.doc_url
 
         Path(self.plugin_repository).mkdir(parents=True, exist_ok=True)
@@ -52,7 +52,7 @@ class PluginGenerator:
         with open(f"{self.template_repository}/plugin_model/python-prediction-algos/test-plugin_my-algo/algo.json") as algo_json_file:
             algo_dict = json.load(algo_json_file)
         algo_dict["meta"]["label"] = self.refined_module.module_name
-        algo_dict["meta"]["description"] = self.refined_module.module_short_description.replace("\n", " ")
+        algo_dict["meta"]["description"] = self.refined_module.module_short_description
         algo_dict["predictionTypes"] = self.prediction_type.value
         for parameter in self.refined_module.parameters:
             if parameter.get('selected', True):
@@ -134,6 +134,12 @@ class PluginGenerator:
         else:
             formatted_parameter = StringsPluginParameter(new_parameter)
         return vars(formatted_parameter)
+
+    def has_random_state_param(self):
+        for parameter in self.refined_module.parameters:
+            if "random_state" == parameter.name:
+                return True
+        return False
 
 
 def add_dss_packages(requirements):
