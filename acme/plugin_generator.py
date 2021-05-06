@@ -7,13 +7,13 @@ from acme.plugin_parameter import IntPluginParameter, DoublesPluginParameter, St
 
 
 class PluginGenerator:
-    def __init__(self, import_name, prediction_type, refined_function, doc_url=""):
+    def __init__(self, import_name, prediction_type, refined_function, template_path='.', doc_url=""):
         self.refined_module = refined_function
         self.import_name = import_name
         self.prediction_type = prediction_type
         self.doc_url = doc_url
         self.plugin_repository = f"dss-plugin-{self.refined_module.module_name}"
-        self.template_repository = "templates"
+        self.template_repository = Path(template_path) / "templates"
 
     def write(self):
         self._write_plugin_json()

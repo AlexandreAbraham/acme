@@ -1,4 +1,5 @@
 from copy import deepcopy
+from .acme_constants import DSSType
 
 
 def id_to_screen_name(id_name):
@@ -16,9 +17,9 @@ class InteractiveRefiner:
             layout = {'width': 'auto'}
             style = {'description_width': '120px'}
             name = wg.Text(description='Screen name', value=id_to_screen_name(param.get("name")), layout=layout, style=style)
-            type_ = wg.Dropdown(description='Type', options=['Int', 'Doubles', 'Strings'], layout=layout, style=style)
+            type_ = wg.Dropdown(description='Type', options=[('INT', DSSType.INT), ('DOUBLES', DSSType.DOUBLES), ('STRINGS', DSSType.STRINGS)], value=param.get('type'), layout=layout, style=style)
             default = wg.Text(description='Default', value=str(param.get("default_value")), layout=layout, style=style)
-            specs = wg.Text(description='Possible values', value='', layout=layout, style=style)
+            specs = wg.Text(description='Possible values', value=str(param.get("specs", "")), layout=layout, style=style)
             specs_details = wg.Label(value='Possible values can be [Lower, Upper] or {"A","B","C"} or range(min, max, step)', layout=layout, style=style)
 
             box = wg.VBox([name, type_, default, specs, specs_details])
@@ -60,7 +61,8 @@ class ModelRefiner:
                 "name": param.get("name", "Unnamed parameter"), 
                 "description": param.get("description", "Unnamed parameter"),
                 "type": param.get("type"),
-                "default_value": param.get("default")
+                "default_value": param.get("default"),
+                "specs": param.get("specs")
             }
             parsed_parameters.append(prepared_parameter)
         return parsed_parameters

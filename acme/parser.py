@@ -14,21 +14,27 @@ PATTERNS = [
     ('string', DSSType.STRINGS)
 ]
 
+def to_dsstype(type_):
+    if type_ == int:
+        return DSSType.INT
+    if type_ == float:
+        return DSSType.DOUBLES
+    if type_ == str:
+        return DSSType.STRINGS
+    return None
 
-def guess_type(name, default, type_):
+
+def guess_type(name, default, type_str):
     # We do our best to find types among int, float/double, strings.
     if default is not None:
-        if type(default) == int:
-            return DSSType.INT
-        if type(default) == float:
-            return DSSType.DOUBLES
-        if type(default) == str:
-            return DSSType.STRINGS
+        dss_type = to_dsstype(type(default))
+        if dss_type is not None:
+            return dss_type 
     
     for pattern, dss_type in PATTERNS:
-        if type_ == pattern:
+        if type_str == pattern:
             return dss_type
-        if re.search('^{}\W|\W{}\W|\W{}$'.format(pattern, pattern, pattern), type_, re.I) is not None:
+        if re.search('^{}\W|\W{}\W|\W{}$'.format(pattern, pattern, pattern), type_str, re.I) is not None:
             return dss_type 
 
     return None
@@ -55,9 +61,6 @@ def guess_specs(type_):
     return None
  
 
-            
-
-
 def parse_param(name, doc, has_default=False, default=None, type_=None):
 
     desc = dict()
@@ -67,15 +70,19 @@ def parse_param(name, doc, has_default=False, default=None, type_=None):
 
     if default != inspect._empty:
         desc['default'] = default
-        if default is not None:
-            desc['type'] = type(default)
+
+    # TODO: Should we be more clever?
     if type_  != inspect._empty:
-        desc['type'] = type_
+        dss_type = to_dsstype(type_)
+        if dss_type is not None:
+            desc['type'] = dss_type 
     
     if doc is not None:
         desc['description'] = doc.description
         if desc['type'] is None:
             desc['type'] = guess_type(name, desc.get('default', None), doc.type_name)
+        if doc.type_name is not None:
+            desc['specs'] = guess_specs(doc.type_name)
 
     return desc
 
