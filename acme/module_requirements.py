@@ -1,4 +1,7 @@
 import subprocess
+import importlib
+import shutil
+from pathlib import Path
 
 
 def get_requirements(module, package_name=None):
@@ -17,4 +20,21 @@ def get_requirements(module, package_name=None):
         print(f"Packages retrieved: {requirements_list}")
     else:
         requirements_list = []
+    return requirements_list
+
+
+def import_local_package(clazz, python_lib_path):
+    module_name = clazz.__module__
+    package_name = module_name.split(".")[0]
+    #package = import.import_module(package_name)
+
+    path = Path(package.__path__)
+    shutil.copytree(str(path), python_lib_path)
+
+    requirements_list = []
+    requirements = path.parent / 'requirements.txt'
+    if requirements.exists():
+        with open('requirements.txt') as f:
+            requirements_list = f.read().splitlines()
+
     return requirements_list

@@ -1,4 +1,4 @@
-from acme.acme_constants import DSSType
+from .acme_constants import DSSType
 
 
 class PluginParameter:
