@@ -142,9 +142,9 @@ class ModelRefiner:
         fit = interactive_refiner.custom_fit_widgets
         if fit is not None and fit['chk'].value:
             self.custom_fit = {
-                'fun': fit['fun'],
-                'X': fit['X'],
-                'y': fit['y']
+                'fun': fit['fun'].value,
+                'X': fit['X'].value,
+                'y': fit['y'].value
             }
 
         predict = interactive_refiner.custom_predict_widgets
