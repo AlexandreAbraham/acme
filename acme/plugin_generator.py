@@ -7,7 +7,9 @@ from acme.plugin_parameter import IntPluginParameter, DoublesPluginParameter, St
 
 
 class PluginGenerator:
-    def __init__(self, import_name, prediction_type, refined_function, template_path='.', doc_url="", generate_plugin_zip=False):
+    def __init__(self, import_name, prediction_type, refined_function, template_path='.', doc_url="", generate_plugin_zip=False, requirements=None):
+        if requirements is None:
+            requirements = []
         self.refined_module = refined_function
         self.import_name = import_name
         self.prediction_type = prediction_type
@@ -15,6 +17,7 @@ class PluginGenerator:
         self.plugin_repository = f"dss-plugin-{self.refined_module.module_name}"
         self.template_repository = Path(template_path) / "templates"
         self.generate_zip = generate_plugin_zip
+        self.requirements = requirements
 
     def write(self):
         self._write_plugin_json()
@@ -23,6 +26,8 @@ class PluginGenerator:
         self._write_algo_py(algorithm_name)
         self._write_python_lib()
         self._write_license()
+        if self.requirements:
+            self._create_code_env_macro()
         if self.generate_zip:
             self._make_plugin()
 
@@ -72,6 +77,9 @@ class PluginGenerator:
 
         with open(f"{self.plugin_repository}/LICENSE", "w") as outfile:
             outfile.write(util_script)
+
+    def _create_code_env_macro(self):
+        pass
 
     def _make_plugin(self):
         Path(f"{self.plugin_repository}/dist").mkdir(parents=True, exist_ok=True)
