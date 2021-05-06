@@ -19,5 +19,7 @@ class CustomPredictionAlgorithm(BaseCustomPredictionAlgorithm):
 
 class DSSType(Enum):
     INT = "INT"
+    FLOAT = "FLOAT"
     STRINGS = "STRINGS"
     DOUBLES = "DOUBLES"
+    MULTISELECT = "MULTISELECT"

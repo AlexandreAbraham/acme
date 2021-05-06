@@ -2,8 +2,8 @@ import json
 import shutil
 from pathlib import Path
 
-from acme.acme_constants import python_recipe_template
-from acme.plugin_parameter import IntPluginParameter, DoublesPluginParameter, StringsPluginParameter
+from acme.acme_constants import python_recipe_template, DSSType
+from acme.plugin_parameter import IntPluginParameter, DoublesPluginParameter, StringsPluginParameter, MultiSelectPluginParameter
 
 
 class PluginGenerator:
@@ -28,7 +28,7 @@ class PluginGenerator:
             plugin_dict = json.load(plugin_json_file)
         plugin_dict["id"] = self.refined_module.module_name
         plugin_dict["meta"]["label"] = self.refined_module.module_name
-        plugin_dict["meta"]["description"] = self.refined_module.module_long_description
+        plugin_dict["meta"]["description"] = self.refined_module.module_long_description.replace("\n", " ")
         plugin_dict["meta"]["url"] = self.doc_url
 
         Path(self.plugin_repository).mkdir(parents=True, exist_ok=True)
@@ -39,7 +39,7 @@ class PluginGenerator:
         with open(f"{self.template_repository}/plugin_model/python-prediction-algos/test-plugin_my-algo/algo.json") as algo_json_file:
             algo_dict = json.load(algo_json_file)
         algo_dict["meta"]["label"] = self.refined_module.module_name
-        algo_dict["meta"]["description"] = self.refined_module.module_short_description
+        algo_dict["meta"]["description"] = self.refined_module.module_short_description.replace("\n", " ")
         algo_dict["predictionTypes"] = [self.prediction_type]
         for parameter in self.refined_module.parameters:
             if parameter.get('selected', True):
@@ -64,10 +64,13 @@ class PluginGenerator:
             outfile.write(util_script)
 
     def _format_parameter(self, new_parameter):
+        parameter_type = new_parameter.get("type")
         if accepts_unique_int_value(new_parameter):
             formatted_parameter = IntPluginParameter(new_parameter)
-        elif new_parameter.get("type") in [int, float]:
+        elif parameter_type and DSSType(parameter_type) in [DSSType.INT, DSSType.FLOAT, DSSType.DOUBLES]:
             formatted_parameter = DoublesPluginParameter(new_parameter)
+        elif new_parameter.get("specs") and parameter_type and DSSType(parameter_type) == DSSType.STRINGS:
+            formatted_parameter = MultiSelectPluginParameter(new_parameter)
         else:
             formatted_parameter = StringsPluginParameter(new_parameter)
         return vars(formatted_parameter)
