@@ -1,6 +1,6 @@
-from copy import deepcopy
-from .acme_constants import DSSType
 from ast import literal_eval
+
+from .acme_constants import DSSType
 
 
 def id_to_screen_name(id_name):
@@ -28,7 +28,7 @@ class ArgLoader:
             args = self.functions.get(event['owner'].value, [])['params']
             args = [arg['name'] for arg in args]
             self.dropdown.options = args
-     
+
 
 class InteractiveRefiner:
 
@@ -79,7 +79,8 @@ class InteractiveRefiner:
             selected.layout.width = '100%'
 
             name = wg.Text(description='Screen name', value=id_to_screen_name(param.get("name")), layout=layout, style=style)
-            type_ = wg.Dropdown(description='Type', options=[('INT', DSSType.INT), ('DOUBLES', DSSType.DOUBLES), ('STRINGS', DSSType.STRINGS)], value=param.get('type'), layout=layout, style=style)
+            type_ = wg.Dropdown(description='Type', options=[('INT', DSSType.INT), ('DOUBLES', DSSType.DOUBLES), ('STRINGS', DSSType.STRINGS)],
+                                value=param.get('type'), layout=layout, style=style)
             default = wg.Text(description='Default', value=str(param.get("default_value")), layout=layout, style=style)
             specs = wg.Text(description='Possible values', value=str(param.get("specs", "")), layout=layout, style=style)
             specs_details = wg.Label(value='Possible values can be [Lower, Upper] or {"A","B","C"} or range(min, max, step)', layout=layout, style=style)
@@ -92,18 +93,16 @@ class InteractiveRefiner:
             self.parameters_widgets.append(dict(selected=selected, name=name, type=type_, specs=specs, default=default))
             self.boxes.append(selected)
             self.boxes.append(box)
-    
+
     def display(self):
         from IPython.display import display
         display(*self.boxes)
-
 
 
 class ModelRefiner:
 
     def __init__(self, parsed_docstring):
         self._load(parsed_docstring)
-
 
     def _load(self, parsed_docstring):
 
@@ -125,7 +124,7 @@ class ModelRefiner:
         parsed_parameters = []
         for param in parameters:
             prepared_parameter = {
-                "name": param.get("name", "Unnamed parameter"), 
+                "name": param.get("name", "Unnamed parameter"),
                 "description": param.get("description", "Unnamed parameter"),
                 "type": param.get("type"),
                 "default_value": param.get("default"),
@@ -144,7 +143,7 @@ class ModelRefiner:
             self.custom_fit = {
                 'name': fit['fun'],
                 'X': fit['X'],
-                'y':fit['y']
+                'y': fit['y']
             }
 
         predict = interactive_refiner.custom_predict_widgets
@@ -157,7 +156,7 @@ class ModelRefiner:
         for param, param_widget in zip(self.parameters, interactive_refiner.parameters_widgets):
             param['selected'] = param_widget['selected'].value
             param['type'] = param_widget['type'].value
-            param['default_value'] = param_widget['default'].value
+            param['default_value'] = cast_string(param_widget['default'].value)
             param['screen_name'] = param_widget['name'].value
             try:
                 specs = literal_eval(param_widget['specs'].value)
@@ -167,3 +166,34 @@ class ModelRefiner:
                     param['specs'] = specs
             except:
                 pass
+
+
+def cast_string(s):
+    if s == "True":
+        return True
+    elif s == "False":
+        return False
+    elif s == "None" or s == "":
+        return None
+    elif is_int(s):
+        return int(s)
+    elif is_float(s):
+        return float(s)
+    else:
+        return s
+
+
+def is_int(s):
+    try:
+        int(s)
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
+def is_float(s):
+    try:
+        float(s)
+        return True
+    except (ValueError, TypeError):
+        return False

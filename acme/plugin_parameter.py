@@ -21,7 +21,7 @@ class DoublesPluginParameter(PluginParameter):
         self.gridParam = True
 
     def format_default_value(self, default_value):
-        return [cast_string(default_value)]
+        return [default_value]
 
 
 class StringsPluginParameter(PluginParameter):
@@ -31,7 +31,7 @@ class StringsPluginParameter(PluginParameter):
         self.gridParam = True
 
     def format_default_value(self, default_value):
-        return [default_value]
+        return [str(default_value)]
 
 
 class MultiSelectPluginParameter(PluginParameter):
@@ -58,35 +58,5 @@ class IntPluginParameter(PluginParameter):
         self.type = DSSType.INT.value
 
     def format_default_value(self, default_value):
-        return cast_string(default_value)
+        return default_value
 
-
-def cast_string(s):
-    if s == "True":
-        return True
-    elif s == "False":
-        return False
-    elif s == "None" or s == "":
-        return None
-    elif is_int(s):
-        return int(s)
-    elif is_float(s):
-        return float(s)
-    else:
-        return s
-
-
-def is_int(s):
-    try:
-        int(s)
-        return True
-    except (ValueError, TypeError):
-        return False
-
-
-def is_float(s):
-    try:
-        float(s)
-        return True
-    except (ValueError, TypeError):
-        return False
