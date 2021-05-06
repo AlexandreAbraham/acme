@@ -17,6 +17,12 @@ class CustomPredictionAlgorithm(BaseCustomPredictionAlgorithm):
 """
 
 
+class DSSPredType(Enum):
+    REGRESSION = ["REGRESSION"]
+    CLASSIFICATION = ["BINARY_CLASSIFICATION", "MULTICLASS"]
+    CLUSTERING = ["CLUSTERING"]
+
+
 class DSSType(Enum):
     INT = "INT"
     FLOAT = "FLOAT"

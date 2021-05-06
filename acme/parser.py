@@ -1,6 +1,6 @@
 from docstring_parser import parse
 import inspect
-from .acme_constants import DSSType
+from .constants import DSSType
 import re
 from ast import literal_eval
 import importlib

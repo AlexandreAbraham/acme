@@ -1,6 +1,6 @@
 from ast import literal_eval
 
-from .acme_constants import DSSType
+from .constants import DSSType
 
 
 def id_to_screen_name(id_name):

@@ -2,7 +2,7 @@ import json
 import shutil
 from pathlib import Path
 
-from .acme_constants import python_recipe_template, DSSType, custom_fit_template, custom_predict_template, model_wrapper_template, macro_template
+from .constants import python_recipe_template, DSSType, custom_fit_template, custom_predict_template, model_wrapper_template, macro_template
 from .plugin_parameter import IntPluginParameter, DoublesPluginParameter, StringsPluginParameter, MultiSelectPluginParameter
 from . import templates
 
@@ -25,7 +25,7 @@ class PluginGenerator:
 
     def write(self):
         self._write_plugin_json()
-        algorithm_name = f"{self.refined_module.module_name}_{self.prediction_type.lower()}"
+        algorithm_name = f"{self.refined_module.module_name}_{self.prediction_type.name.lower()}"
         self._write_algo_json(algorithm_name)
         wrapped = self._write_model_wrapper()
         self._write_algo_py(algorithm_name, wrapped=wrapped)
@@ -53,7 +53,7 @@ class PluginGenerator:
             algo_dict = json.load(algo_json_file)
         algo_dict["meta"]["label"] = self.refined_module.module_name
         algo_dict["meta"]["description"] = self.refined_module.module_short_description.replace("\n", " ")
-        algo_dict["predictionTypes"] = [self.prediction_type]
+        algo_dict["predictionTypes"] = self.prediction_type.value
         for parameter in self.refined_module.parameters:
             if parameter.get('selected', True):
                 algo_dict["params"].append(self._format_parameter(parameter))
@@ -114,7 +114,7 @@ class PluginGenerator:
         with open(f"{self.plugin_repository}/python-runnables/code-env-creation/runnable.json", "w") as outfile:
             json.dump(macro_dict, outfile, indent=4)
 
-        code_env_name = f"{self.refined_module.module_name}-{self.prediction_type}-macro"
+        code_env_name = f"{self.refined_module.module_name}-{self.prediction_type.name}-macro"
         packages_to_install = ("\\n").join(self.requirements)
         formatted_macro_code = macro_template.format(code_env_name=code_env_name, packages_to_install=packages_to_install)
         with open(f"{self.plugin_repository}/python-runnables/code-env-creation/runnable.py", "w") as outfile:
