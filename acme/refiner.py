@@ -1,9 +1,21 @@
 from copy import deepcopy
 from .acme_constants import DSSType
+from ast import literal_eval
 
 
 def id_to_screen_name(id_name):
     return ' '.join(s.capitalize() for s in id_name.split('_'))
+
+
+class Curtain:
+
+    def __init__(self, target):
+        self.target = target
+
+    def __call__(self, event):
+        if event['type'] == 'change':
+            self.target.layout.display = ('block' if event['owner'].value else 'none')
+
 
 class InteractiveRefiner:
 
@@ -11,6 +23,7 @@ class InteractiveRefiner:
         import ipywidgets as wg
         self.parameters_widgets = []
         self.boxes = []
+
         for param in parameters:
             selected = wg.Checkbox(description=param.get("name"), value=True, indent=False)
             selected.layout.width = '100%'
@@ -25,6 +38,8 @@ class InteractiveRefiner:
             box = wg.VBox([name, type_, default, specs, specs_details])
             box.layout.margin = "0 0 0 50px"
             box.layout.width = 'auto'
+
+            selected.observe(Curtain(box))
             self.parameters_widgets.append(dict(selected=selected, name=name, type=type_, specs=specs, default=default))
             self.boxes.append(selected)
             self.boxes.append(box)
@@ -47,6 +62,7 @@ class ModelRefiner:
         self.module_long_description = parsed_docstring.get("long_description", "").rstrip()
         self.module_name = parsed_docstring['name']
         self.parameters = []
+        self.functions = parsed_docstring.get('functions', None)
 
         init_docstring = parsed_docstring.get('functions', dict()).get('__init__', None)
         if init_docstring is not None:
@@ -76,4 +92,11 @@ class ModelRefiner:
             param['type'] = param_widget['type'].value
             param['default_value'] = param_widget['default'].value
             param['screen_name'] = param_widget['name'].value
-            param['specs'] = param_widget['specs'].value
+            try:
+                specs = literal_eval(param_widget['specs'].value)
+                if type(specs) not in [list, set]:
+                    print('[{}] Specs not a set or a list'.format(param['name']))
+                else:
+                    param['specs'] = specs
+            except:
+                pass
