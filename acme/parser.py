@@ -151,7 +151,7 @@ def parse_class(clazz):
 
     funs = dict()
     # Special case for __init__
-    if clazz.__init__.__doc__ is None:
+    if clazz.__init__.__doc__ is not None:
         funs['__init__'] = parse_function(clazz.__init__, doc=clazz.__doc__)
 
     for fun_name, fun in inspect.getmembers(clazz, predicate=inspect.isfunction):
