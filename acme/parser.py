@@ -117,8 +117,8 @@ def parse_function(fun, doc=None):
             type_=parameter.annotation,
         ))
 
-    for doc_param in doc_params:
-        print('[{}] Doc argument missing in signature: {}'.format(desc['name'], doc_param))
+    # for doc_param in doc_params:
+    #     print('[{}] Doc argument missing in signature: {}'.format(desc['name'], doc_param))
 
     # Parse returns
     desc['returns'] = None
