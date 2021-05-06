@@ -25,7 +25,7 @@ class InteractiveRefiner:
             box = wg.VBox([name, type_, default, specs, specs_details])
             box.layout.margin = "0 0 0 50px"
             box.layout.width = 'auto'
-            self.parameters_widgets.append([selected, name, type_, specs, default])
+            self.parameters_widgets.append(dict(selected=selected, name=name, type=type_, specs=specs, default=default))
             self.boxes.append(selected)
             self.boxes.append(box)
     
@@ -72,6 +72,8 @@ class ModelRefiner:
 
     def update(self, interactive_refiner):
         for param, param_widget in zip(self.parameters, interactive_refiner.parameters_widgets):
-            param['selected'] = param_widget[0].value
-            param['type'] = param_widget[1].value
-            param['default_value'] = param_widget[2].value
+            param['selected'] = param_widget['selected'].value
+            param['type'] = param_widget['type'].value
+            param['default_value'] = param_widget['default'].value
+            param['screen_name'] = param_widget['name'].value
+            param['specs'] = param_widget['specs'].value

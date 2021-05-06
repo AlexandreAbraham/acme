@@ -42,7 +42,8 @@ class PluginGenerator:
         algo_dict["meta"]["description"] = self.refined_module.module_short_description
         algo_dict["predictionTypes"] = [self.prediction_type]
         for parameter in self.refined_module.parameters:
-            algo_dict["params"].append(self._format_parameter(parameter))
+            if parameter.get('selected', True):
+                algo_dict["params"].append(self._format_parameter(parameter))
 
         Path(f"{self.plugin_repository}/python-prediction-algos/{algorithm_name}").mkdir(parents=True, exist_ok=True)
         with open(f"{self.plugin_repository}/python-prediction-algos/{algorithm_name}/algo.json", "w") as outfile:
