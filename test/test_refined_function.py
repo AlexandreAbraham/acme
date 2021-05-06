@@ -1,6 +1,6 @@
 import pytest
 
-from acme.refined_function import RefinedFunction
+from .refined_function import RefinedFunction
 
 
 @pytest.fixture()

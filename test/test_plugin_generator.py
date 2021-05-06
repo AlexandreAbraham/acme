@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from acme.plugin_generator import PluginGenerator
+from .plugin_generator import PluginGenerator
 
 
 class RefinedFunction:

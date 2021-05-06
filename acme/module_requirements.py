@@ -18,3 +18,6 @@ def get_requirements(module, package_name=None):
     else:
         requirements_list = []
     return requirements_list
+
+
+def import_local_package(module)

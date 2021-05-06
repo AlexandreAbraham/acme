@@ -2,12 +2,14 @@ import json
 import shutil
 from pathlib import Path
 
-from acme.acme_constants import python_recipe_template, DSSType, custom_fit_template, custom_predict_template, model_wrapper_template
-from acme.plugin_parameter import IntPluginParameter, DoublesPluginParameter, StringsPluginParameter, MultiSelectPluginParameter
+from .acme_constants import python_recipe_template, DSSType, custom_fit_template, custom_predict_template, model_wrapper_template
+from .plugin_parameter import IntPluginParameter, DoublesPluginParameter, StringsPluginParameter, MultiSelectPluginParameter
+from . import templates
 
 
 class PluginGenerator:
-    def __init__(self, import_name, prediction_type, refined_function, template_path='.', doc_url="", generate_plugin_zip=False, requirements=None):
+
+    def __init__(self, import_name, prediction_type, refined_function, doc_url="", generate_plugin_zip=False, requirements=None):
         if requirements is None:
             requirements = []
         self.refined_module = refined_function
@@ -15,7 +17,7 @@ class PluginGenerator:
         self.prediction_type = prediction_type
         self.doc_url = doc_url
         self.plugin_repository = f"dss-plugin-{self.refined_module.module_name}"
-        self.template_repository = Path(template_path) / "templates"
+        self.template_repository = Path(templates.PATH)
         self.generate_zip = generate_plugin_zip
         self.requirements = requirements
 
