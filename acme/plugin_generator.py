@@ -2,7 +2,7 @@ import json
 import shutil
 from pathlib import Path
 
-from acme.acme_constants import python_recipe_template, DSSType
+from acme.acme_constants import python_recipe_template, DSSType, custom_fit_template, custom_predict_template, model_wrapper_template
 from acme.plugin_parameter import IntPluginParameter, DoublesPluginParameter, StringsPluginParameter, MultiSelectPluginParameter
 
 
@@ -23,7 +23,8 @@ class PluginGenerator:
         self._write_plugin_json()
         algorithm_name = f"{self.refined_module.module_name}_{self.prediction_type.lower()}"
         self._write_algo_json(algorithm_name)
-        self._write_algo_py(algorithm_name)
+        wrapped = self._write_model_wrapper()
+        self._write_algo_py(algorithm_name, wrapped=wrapped)
         self._write_python_lib()
         self._write_license()
         if self.requirements:
@@ -57,8 +58,11 @@ class PluginGenerator:
         with open(f"{self.plugin_repository}/python-prediction-algos/{algorithm_name}/algo.json", "w") as outfile:
             json.dump(algo_dict, outfile, indent=4)
 
-    def _write_algo_py(self, algorithm_name):
-        import_statement = f"from {self.import_name} import {self.refined_module.module_name}"
+    def _write_algo_py(self, algorithm_name, wrapped=False):
+        if wrapped:
+            import_statement = f"from model_wrapper import Wrapped{self.refined_module.module_name} as {self.refined_module.module_name}"
+        else:
+            import_statement = f"from {self.import_name} import {self.refined_module.module_name}"
         formatted_code = python_recipe_template.format(import_statement=import_statement, module_name=self.refined_module.module_name)
         with open(f"{self.plugin_repository}/python-prediction-algos/{algorithm_name}/algo.py", "w") as outfile:
             outfile.write(formatted_code)
@@ -70,6 +74,27 @@ class PluginGenerator:
         Path(f"{self.plugin_repository}/python-lib").mkdir(parents=True, exist_ok=True)
         with open(f"{self.plugin_repository}/python-lib/dku_utils.py", "w") as outfile:
             outfile.write(util_script)
+
+    def _write_model_wrapper(self):
+        custom_fit = self.refined_module.custom_fit
+        custom_predict = self.refined_module.custom_predict
+
+        if custom_fit is None and custom_predict is None:
+            return False
+
+        fit = ''
+        if custom_fit:
+            fit = custom_fit_template.format(class_name=self.refined_module.module_name, **custom_fit)
+
+        predict = ''
+        if custom_predict:
+            predict = custom_predict_template.format(class_name=self.refined_module.module_name, **custom_predict)
+
+        wrapper = model_wrapper_template.format(import_statement=self.import_name, class_name=self.refined_module.module_name, fit=fit, predict=predict)
+        Path(f"{self.plugin_repository}/python-lib").mkdir(parents=True, exist_ok=True)
+        with open(f"{self.plugin_repository}/python-lib/model_wrapper.py", "w") as outfile:
+            outfile.write(wrapper)
+        return True
 
     def _write_license(self):
         f = open(f"{self.template_repository}/plugin_base/LICENSE", "r")
