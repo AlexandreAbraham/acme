@@ -45,7 +45,7 @@ class MultiSelectPluginParameter(PluginParameter):
         return [str(default_value)]
 
     def format_specs(self, specs):
-        formatted_specs = set(ast.literal_eval(specs))
+        formatted_specs = set(specs)
         select_choices = []
         for possible_value in formatted_specs:
             select_choices.append({"value": possible_value, "label": possible_value})

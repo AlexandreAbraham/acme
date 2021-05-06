@@ -21,6 +21,7 @@ class PluginGenerator:
         self._write_algo_json(algorithm_name)
         self._write_algo_py(algorithm_name)
         self._write_python_lib()
+        self._write_license()
         shutil.make_archive(f"dss-plugin-{self.refined_module.module_name}", "zip", self.plugin_repository)
 
     def _write_plugin_json(self):
@@ -61,6 +62,13 @@ class PluginGenerator:
 
         Path(f"{self.plugin_repository}/python-lib").mkdir(parents=True, exist_ok=True)
         with open(f"{self.plugin_repository}/python-lib/dku_utils.py", "w") as outfile:
+            outfile.write(util_script)
+
+    def _write_license(self):
+        f = open(f"{self.template_repository}/plugin_base/LICENSE", "r")
+        util_script = f.read()
+
+        with open(f"{self.plugin_repository}/LICENSE", "w") as outfile:
             outfile.write(util_script)
 
     def _format_parameter(self, new_parameter):
