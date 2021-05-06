@@ -67,7 +67,12 @@ class PluginGenerator:
             import_statement = f"from model_wrapper import Wrapped{self.refined_module.module_name} as {self.refined_module.module_name}"
         else:
             import_statement = f"from {self.import_name} import {self.refined_module.module_name}"
-        formatted_code = python_recipe_template.format(import_statement=import_statement, module_name=self.refined_module.module_name)
+        if self.has_random_state_param():
+            random_state_code_snippet = "random_state=formatted_parameters.get('random_state', None)"
+        else:
+            random_state_code_snippet = ""
+        formatted_code = python_recipe_template.format(import_statement=import_statement, module_name=self.refined_module.module_name,
+                                                       random_state_snippet=random_state_code_snippet)
         with open(f"{self.plugin_repository}/python-prediction-algos/{algorithm_name}/algo.py", "w") as outfile:
             outfile.write(formatted_code)
 
