@@ -3,6 +3,7 @@ import inspect
 from .acme_constants import DSSType
 import re
 from ast import literal_eval
+import importlib
 
 
 PATTERNS = [
@@ -159,4 +160,18 @@ def parse_class(clazz):
         funs[fun_name] = parse_function(fun)
     
     desc['functions'] = funs
+    import_name = clazz.__module__
+    # Remove private module, we are not supposed to import from them
+    import_names = []
+    for name in import_name.split('.'):
+        if name.startswith('_'):
+            break
+        import_names.append(name)
+    import_name = '.'.join(import_names)
+    module = importlib.import_module(import_name)
+    if hasattr(module, desc['name']):
+        desc['import_name'] = import_name
+    else:
+        print('WARNING: Could not resolve import name. Please specify it manually in plugin generator')
+
     return desc

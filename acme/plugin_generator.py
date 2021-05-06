@@ -9,11 +9,13 @@ from . import templates
 
 class PluginGenerator:
 
-    def __init__(self, import_name, prediction_type, refined_function, doc_url="", generate_plugin_zip=False, requirements=None):
+    def __init__(self, prediction_type, refined_function, doc_url="", generate_plugin_zip=False, requirements=None, import_name=None):
         if requirements is None:
             requirements = []
         self.refined_module = refined_function
-        self.import_name = import_name
+        self.import_name = import_name or refined_function.import_name
+        if self.import_name is None:
+            raise(ValueError('Import name could not be determined, please provide it manually.'))
         self.prediction_type = prediction_type
         self.doc_url = doc_url
         self.plugin_repository = f"dss-plugin-{self.refined_module.module_name}"

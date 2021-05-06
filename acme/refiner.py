@@ -109,6 +109,7 @@ class ModelRefiner:
         self.module_short_description = parsed_docstring.get("short_description", "").rstrip()
         self.module_long_description = parsed_docstring.get("long_description", "").rstrip()
         self.module_name = parsed_docstring['name']
+        self.import_name = parsed_docstring.get('import_name', None)
         self.parameters = []
         self.functions = parsed_docstring.get('functions', None)
         self.custom_fit = None
