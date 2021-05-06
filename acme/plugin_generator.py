@@ -2,7 +2,7 @@ import json
 import shutil
 from pathlib import Path
 
-from acme.acme_constants import python_recipe_template, DSSType, custom_fit_template, custom_predict_template, model_wrapper_template
+from acme.acme_constants import python_recipe_template, DSSType, custom_fit_template, custom_predict_template, model_wrapper_template, macro_template
 from acme.plugin_parameter import IntPluginParameter, DoublesPluginParameter, StringsPluginParameter, MultiSelectPluginParameter
 
 
@@ -17,7 +17,7 @@ class PluginGenerator:
         self.plugin_repository = f"dss-plugin-{self.refined_module.module_name}"
         self.template_repository = Path(template_path) / "templates"
         self.generate_zip = generate_plugin_zip
-        self.requirements = requirements
+        self.requirements = add_dss_packages(requirements)
 
     def write(self):
         self._write_plugin_json()
@@ -104,11 +104,20 @@ class PluginGenerator:
             outfile.write(util_script)
 
     def _create_code_env_macro(self):
-        pass
+        Path(f"{self.plugin_repository}/python-runnables/code-env-creation").mkdir(parents=True, exist_ok=True)
+        with open(f"{self.template_repository}/python-runnables/code-env-creation/runnable.json") as macro_json_file:
+            macro_dict = json.load(macro_json_file)
+        with open(f"{self.plugin_repository}/python-runnables/code-env-creation/runnable.json", "w") as outfile:
+            json.dump(macro_dict, outfile, indent=4)
+
+        code_env_name = f"{self.refined_module.module_name}-{self.prediction_type}-macro"
+        packages_to_install = ("\\n").join(self.requirements)
+        formatted_macro_code = macro_template.format(code_env_name=code_env_name, packages_to_install=packages_to_install)
+        with open(f"{self.plugin_repository}/python-runnables/code-env-creation/runnable.py", "w") as outfile:
+            outfile.write(formatted_macro_code)
 
     def _make_plugin(self):
-        Path(f"{self.plugin_repository}/dist").mkdir(parents=True, exist_ok=True)
-        shutil.make_archive(f"{self.plugin_repository}/dist/dss-plugin-{self.refined_module.module_name}", "zip", self.plugin_repository)
+        shutil.make_archive(f"dss-plugin-{self.refined_module.module_name}", "zip", self.plugin_repository)
 
     def _format_parameter(self, new_parameter):
         parameter_type = new_parameter.get("type")
@@ -121,6 +130,12 @@ class PluginGenerator:
         else:
             formatted_parameter = StringsPluginParameter(new_parameter)
         return vars(formatted_parameter)
+
+
+def add_dss_packages(requirements):
+    dss_packages = ["scikit-learn>=0.20,<0.21", "scipy>=1.2,<1.3", "xgboost==0.82", "statsmodels>=0.10,<0.11", "jinja2>=2.10,<2.11", "flask>=1.0,<1.1",
+                    "cloudpickle>=1.3,<1.6"]
+    return dss_packages + requirements
 
 
 def accepts_unique_int_value(parameter):

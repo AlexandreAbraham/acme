@@ -1,0 +1,15 @@
+{
+    "meta": {
+        "label": "Custom runnable code-env-creation",
+        "description": "",
+        "icon": "icon-puzzle-piece"
+    },
+    "impersonate": false,
+    "params": [],
+    "permissions": [],
+    "resultType": "HTML",
+    "resultLabel": "my production",
+    "extension": "txt",
+    "mimeType": "text/plain",
+    "macroRoles": []
+}
