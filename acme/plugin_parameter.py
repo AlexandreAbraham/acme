@@ -1,11 +1,10 @@
-import ast
-
 from acme.acme_constants import DSSType
 
 
 class PluginParameter:
     def __init__(self, raw_parameter):
         self.name = raw_parameter.get("name")
+        self.label = raw_parameter.get("screen_name", self.name)
         self.description = raw_parameter.get("description").replace("\n", " ")
         if raw_parameter.get("default_value"):
             self.defaultValue = self.format_default_value(raw_parameter.get("default_value"))
@@ -59,4 +58,3 @@ class IntPluginParameter(PluginParameter):
 
     def format_default_value(self, default_value):
         return default_value
-

@@ -125,7 +125,7 @@ class ModelRefiner:
         for param in parameters:
             prepared_parameter = {
                 "name": param.get("name", "Unnamed parameter"),
-                "description": param.get("description", "Unnamed parameter"),
+                "description": param.get("description", ""),
                 "type": param.get("type"),
                 "default_value": param.get("default"),
                 "specs": param.get("specs")
