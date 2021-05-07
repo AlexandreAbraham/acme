@@ -9,7 +9,8 @@ from .plugin_parameter import IntPluginParameter, DoublesPluginParameter, String
 
 class PluginGenerator:
 
-    def __init__(self, prediction_type, refined_function, doc_url="", generate_plugin_zip=False, requirements=None, import_name=None):
+    def __init__(self, prediction_type, refined_function, doc_url="", generate_plugin_zip=False,
+                 requirements=None, copy_source=None, import_name=None):
         if requirements is None:
             requirements = []
         self.refined_module = refined_function
@@ -22,6 +23,7 @@ class PluginGenerator:
         self.template_repository = Path(templates.PATH)
         self.generate_zip = generate_plugin_zip
         self.requirements = add_dss_packages(requirements)
+        self.copy_source = copy_source
 
     def write(self):
         self._write_plugin_json()
@@ -80,9 +82,12 @@ class PluginGenerator:
         f = open(f"{self.template_repository}/plugin_base/python-lib/testplugin/dku_utils.py", "r")
         util_script = f.read()
 
-        Path(f"{self.plugin_repository}/python-lib").mkdir(parents=True, exist_ok=True)
-        with open(f"{self.plugin_repository}/python-lib/dku_utils.py", "w") as outfile:
+        python_lib_path = Path(self.plugin_repository) / 'python-lib'
+        python_lib_path.mkdir(parents=True, exist_ok=True)
+        with open(python_lib_path / 'dku_utils.py', "w") as outfile:
             outfile.write(util_script)
+        if self.copy_source is not None:
+            shutil.copytree(self.copy_source, str(python_lib_path / Path(self.copy_source).name))
 
     def _write_model_wrapper(self):
         custom_fit = self.refined_module.custom_fit
@@ -142,7 +147,7 @@ class PluginGenerator:
 
     def has_random_state_param(self):
         for parameter in self.refined_module.parameters:
-            if "random_state" == parameter.name:
+            if "random_state" == parameter['name']:
                 return True
         return False
 

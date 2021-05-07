@@ -30,7 +30,10 @@ def guess_type(name, default, type_str):
     if default is not None:
         dss_type = to_dsstype(type(default))
         if dss_type is not None:
-            return dss_type 
+            return dss_type
+
+    if type_str is None:
+        return None
     
     for pattern, dss_type in PATTERNS:
         if type_str == pattern:
@@ -151,27 +154,34 @@ def parse_class(clazz):
 
     funs = dict()
     # Special case for __init__
-    if clazz.__init__.__doc__ is not None:
+    if clazz.__init__.__doc__ is None:
         funs['__init__'] = parse_function(clazz.__init__, doc=clazz.__doc__)
+    else:
+        funs['__init__'] = parse_function(clazz.__init__, doc=clazz.__init__.__doc__)
 
     for fun_name, fun in inspect.getmembers(clazz, predicate=inspect.isfunction):
         if fun_name.startswith('_'):
             continue
-        funs[fun_name] = parse_function(fun)
+        try:
+            funs[fun_name] = parse_function(fun)
+        except:
+            print('[{}] Could not parse function.'.format(fun_name))
     
     desc['functions'] = funs
+    desc['import_name'] = None
     import_name = clazz.__module__
-    # Remove private module, we are not supposed to import from them
-    import_names = []
-    for name in import_name.split('.'):
-        if name.startswith('_'):
-            break
-        import_names.append(name)
-    import_name = '.'.join(import_names)
-    module = importlib.import_module(import_name)
-    if hasattr(module, desc['name']):
-        desc['import_name'] = import_name
-    else:
-        print('WARNING: Could not resolve import name. Please specify it manually in plugin generator')
+    if import_name != '__main__':    
+        # Remove private module, we are not supposed to import from them
+        import_names = []
+        for name in import_name.split('.'):
+            if name.startswith('_'):
+                break
+            import_names.append(name)
+        import_name = '.'.join(import_names)
+        module = importlib.import_module(import_name)
+        if hasattr(module, desc['name']):
+            desc['import_name'] = import_name
+        else:
+            print('WARNING: Could not resolve import name. Please specify it manually in plugin generator')
 
     return desc

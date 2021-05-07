@@ -23,13 +23,12 @@ def get_requirements(module, package_name=None):
     return requirements_list
 
 
-def import_local_package(clazz, python_lib_path):
+def requirements_from_local_lib(clazz):
     module_name = clazz.__module__
     package_name = module_name.split(".")[0]
-    #package = import.import_module(package_name)
+    package = importlib.import_module(package_name)
 
-    path = Path(package.__path__)
-    shutil.copytree(str(path), python_lib_path)
+    path = Path(package.__path__[0])
 
     requirements_list = []
     requirements = path.parent / 'requirements.txt'
@@ -37,4 +36,4 @@ def import_local_package(clazz, python_lib_path):
         with open('requirements.txt') as f:
             requirements_list = f.read().splitlines()
 
-    return requirements_list
+    return dict(requirements=requirements_list, copy_source=str(path))
