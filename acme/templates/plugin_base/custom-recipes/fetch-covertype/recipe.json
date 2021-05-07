@@ -1,0 +1,29 @@
+{
+    "meta": {
+        "label": "Fetch covertype",
+        "description": "Fetch the covertype dataset from sklearn",
+        "icon": "icon-download-alt"
+    },
+
+    "kind": "PYTHON",
+
+    "inputRoles": [
+    ],
+
+    "outputRoles": [
+        {
+            "name": "output",
+            "label": "Output",
+            "description": "Where to store covertype",
+            "arity": "UNARY",
+            "required": false,
+            "acceptsDataset": true
+        }
+
+    ],
+
+    "params": [],
+
+    "resourceKeys": []
+
+}
