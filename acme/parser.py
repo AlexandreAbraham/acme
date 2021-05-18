@@ -4,6 +4,7 @@ from .constants import DSSType
 import re
 from ast import literal_eval
 import importlib
+from .constants import DSSPredType
 
 
 PATTERNS = [
@@ -61,6 +62,19 @@ def guess_specs(type_):
             return value
     except:
         pass
+
+    return None
+
+def guess_prediction_type(desc):
+    if 'Regressor' in desc['name']:
+        return 'regression'
+    if 'Classifier' in desc['name']:
+        return 'classification'
+    if 'Clustering' in desc['name']:
+        return 'clustering'
+    
+    # TODO: check fit (clustering has no y)
+    # TODO: check predict_proba (only for classif / clust)
 
     return None
  
@@ -169,6 +183,7 @@ def parse_class(clazz):
     
     desc['functions'] = funs
     desc['import_name'] = None
+    desc['prediction_type'] = guess_prediction_type(desc)
     import_name = clazz.__module__
     if import_name != '__main__':    
         # Remove private module, we are not supposed to import from them
@@ -182,6 +197,6 @@ def parse_class(clazz):
         if hasattr(module, desc['name']):
             desc['import_name'] = import_name
         else:
-            print('WARNING: Could not resolve import name. Please specify it manually in plugin generator')
+            print('WARNING: Could not resolve import name. Please specify it manually in refiner')
 
     return desc

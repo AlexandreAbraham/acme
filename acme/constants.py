@@ -32,7 +32,7 @@ class DSSType(Enum):
 
 
 model_wrapper_template = u"""
-from {import_statement} import {class_name}
+{import_statement}
 
 
 class Wrapped{class_name}({class_name}):
