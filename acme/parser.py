@@ -8,39 +8,28 @@ from .constants import DSSPredType
 
 
 PATTERNS = [
-    ('int', DSSType.INT),
-    ('integer', DSSType.INT),
-    ('float', DSSType.DOUBLES),
-    ('double', DSSType.DOUBLES),
-    ('str', DSSType.STRINGS),
-    ('string', DSSType.STRINGS)
+    ('int', 'int'),
+    ('integer', 'int'),
+    ('float', 'float'),
+    ('double', 'float'),
+    ('str', 'str'),
+    ('string', 'str')
 ]
-
-def to_dsstype(type_):
-    if type_ == int:
-        return DSSType.INT
-    if type_ == float:
-        return DSSType.DOUBLES
-    if type_ == str:
-        return DSSType.STRINGS
-    return None
 
 
 def guess_type(name, default, type_str):
     # We do our best to find types among int, float/double, strings.
     if default is not None:
-        dss_type = to_dsstype(type(default))
-        if dss_type is not None:
-            return dss_type
+        return type(default).__name__
 
     if type_str is None:
         return None
     
-    for pattern, dss_type in PATTERNS:
+    for pattern, string_type in PATTERNS:
         if type_str == pattern:
-            return dss_type
+            return string_type
         if re.search('^{}\W|\W{}\W|\W{}$'.format(pattern, pattern, pattern), type_str, re.I) is not None:
-            return dss_type 
+            return string_type 
 
     return None
 
