@@ -9,38 +9,33 @@ from .plugin_parameter import IntPluginParameter, DoublesPluginParameter, String
 
 class PluginGenerator:
 
-    def __init__(self, plugin_name, plugin_description, refined_modules, doc_url="", generate_plugin_zip=False,
-                 requirements=None, copy_source=None):
+    def __init__(self, plugin_name, plugin_description, doc_url="", requirements=None, copy_source=None):
         if requirements is None:
             requirements = []
         self.plugin_name = plugin_name
         self.plugin_description = plugin_description
-        if not isinstance(refined_modules, list):
-            refined_modules = [refined_modules]
-        self.refined_modules = refined_modules
-
         self.doc_url = doc_url
         self.plugin_repository = f"dss-plugin-{plugin_name}"
         self.template_repository = Path(templates.PATH)
-        self.generate_zip = generate_plugin_zip
         self.requirements = add_dss_packages(requirements)
         self.copy_source = copy_source
 
-    def write(self):
+    def write_base(self):
         Path(self.plugin_repository).mkdir(parents=True, exist_ok=True)
         self._write_plugin_json()
-
-        for refined_module in self.refined_modules:
-            self._write_algo_json(refined_module)
-            wrapped = self._write_model_wrapper(refined_module)
-            self._write_algo_py(refined_module, wrapped=wrapped)
 
         self._write_python_lib()
         self._write_license()
         if self.requirements:
             self._create_code_env_macro()
-        if self.generate_zip:
-            self._make_plugin()
+
+    def write_refined_function(self, refined_module):
+        self._write_algo_json(refined_module)
+        wrapped = self._write_model_wrapper(refined_module)
+        self._write_algo_py(refined_module, wrapped=wrapped)
+
+    def generate_zip(self):
+        shutil.make_archive(f"dss-plugin-{self.plugin_name}", "zip", self.plugin_repository)
 
     def _write_plugin_json(self):
         with open(f"{self.template_repository}/plugin_base/plugin.json") as plugin_json_file:
@@ -135,9 +130,6 @@ class PluginGenerator:
         formatted_macro_code = macro_template.format(code_env_name=code_env_name, packages_to_install=packages_to_install)
         with open(f"{self.plugin_repository}/python-runnables/code-env-creation/runnable.py", "w") as outfile:
             outfile.write(formatted_macro_code)
-
-    def _make_plugin(self):
-        shutil.make_archive(f"dss-plugin-{self.plugin_name}", "zip", self.plugin_repository)
 
     def _format_parameter(self, new_parameter):
         parameter_type = new_parameter.get("type")
