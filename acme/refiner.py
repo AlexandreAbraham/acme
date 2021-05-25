@@ -1,6 +1,7 @@
 from ast import literal_eval
 
 from .constants import DSSType, DSSPredType
+from .plugin_parameter import PluginParameter, VarType
 
 
 def id_to_screen_name(id_name):
@@ -86,14 +87,14 @@ class InteractiveRefiner:
             self.boxes.append(custom_predict_box)
 
         for param in parameters:
-            selected = wg.Checkbox(description=param.get("name"), value=True, indent=False)
+            selected = wg.Checkbox(description=param.name, value=True, indent=False)
             selected.layout.width = '100%'
 
-            name = wg.Text(description='Screen name', value=id_to_screen_name(param.get("name")), layout=layout, style=style)
-            type_ = wg.Dropdown(description='Type', options=[('INT', DSSType.INT), ('DOUBLES', DSSType.DOUBLES), ('STRINGS', DSSType.STRINGS)],
-                                value=param.get('type'), layout=layout, style=style)
-            default = wg.Text(description='Default', value=str(param.get("default_value")), layout=layout, style=style)
-            specs = wg.Text(description='Possible values', value=str(param.get("specs", "")), layout=layout, style=style)
+            name = wg.Text(description='Screen name', value=id_to_screen_name(param.screen_name), layout=layout, style=style)
+            type_ = wg.Dropdown(description='Type', options=[(str(t.value), t) for t in VarType],
+                                value=param.var_type, layout=layout, style=style)
+            default = wg.Text(description='Default', value=str(param.default_value), layout=layout, style=style)
+            specs = wg.Text(description='Possible values', value=str(param.specs), layout=layout, style=style)
             specs_details = wg.Label(value='Possible values can be [Lower, Upper] or {"A","B","C"} or range(min, max, step)', layout=layout, style=style)
 
             box = wg.VBox([name, type_, default, specs, specs_details])
@@ -140,13 +141,7 @@ class ModelRefiner:
     def _prepare_params(self, parameters):
         parsed_parameters = []
         for param in parameters:
-            prepared_parameter = {
-                "name": param.get("name", "Unnamed parameter"),
-                "description": param.get("description", ""),
-                "type": param.get("type"),
-                "default_value": param.get("default"),
-                "specs": param.get("specs")
-            }
+            prepared_parameter = PluginParameter(param)
             parsed_parameters.append(prepared_parameter)
         return parsed_parameters
 

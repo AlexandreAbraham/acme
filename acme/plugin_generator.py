@@ -4,7 +4,6 @@ from pathlib import Path
 
 from . import templates
 from .constants import python_recipe_template, DSSType, custom_fit_template, custom_predict_template, model_wrapper_template, macro_template
-from .plugin_parameter import IntPluginParameter, DoublesPluginParameter, StringsPluginParameter, MultiSelectPluginParameter
 
 
 class PluginGenerator:
@@ -56,7 +55,7 @@ class PluginGenerator:
         algo_dict["predictionTypes"] = refined_module.prediction_type.value
         for parameter in refined_module.parameters:
             if parameter.get('selected', True):
-                algo_dict["params"].append(self._format_parameter(parameter))
+                algo_dict["params"].append(parameter.get_dss_json())
 
         algorithm_name = refined_module.module_name
         Path(f"{self.plugin_repository}/python-prediction-algos/{algorithm_name}").mkdir(parents=True, exist_ok=True)
@@ -130,18 +129,6 @@ class PluginGenerator:
         formatted_macro_code = macro_template.format(code_env_name=code_env_name, packages_to_install=packages_to_install)
         with open(f"{self.plugin_repository}/python-runnables/code-env-creation/runnable.py", "w") as outfile:
             outfile.write(formatted_macro_code)
-
-    def _format_parameter(self, new_parameter):
-        parameter_type = new_parameter.get("type")
-        if accepts_unique_int_value(new_parameter):
-            formatted_parameter = IntPluginParameter(new_parameter)
-        elif parameter_type and DSSType(parameter_type) in [DSSType.INT, DSSType.FLOAT, DSSType.DOUBLES]:
-            formatted_parameter = DoublesPluginParameter(new_parameter)
-        elif new_parameter.get("specs") and parameter_type and DSSType(parameter_type) == DSSType.STRINGS:
-            formatted_parameter = MultiSelectPluginParameter(new_parameter)
-        else:
-            formatted_parameter = StringsPluginParameter(new_parameter)
-        return vars(formatted_parameter)
 
     def has_random_state_param(self, refined_module):
         for parameter in refined_module.parameters:

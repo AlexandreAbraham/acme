@@ -8,7 +8,8 @@ from dku_utils import cast_parameters
 
 class CustomPredictionAlgorithm(BaseCustomPredictionAlgorithm):    
     def __init__(self, prediction_type=None, params=None):    
-        formatted_parameters = cast_parameters(params)
+        formatted_parameters = dict()
+{parameter_checks}
         self.clf = {module_name}({random_state_snippet})
         super(CustomPredictionAlgorithm, self).__init__(prediction_type, formatted_parameters)
     

@@ -7,25 +7,27 @@ import importlib
 from .constants import DSSPredType
 
 
-PATTERNS = [
-    ('int', 'int'),
-    ('integer', 'int'),
-    ('float', 'float'),
-    ('double', 'float'),
-    ('str', 'str'),
-    ('string', 'str')
-]
+TypeMappings = {
+    'int': 'Integer',
+    'integer': 'Integer',
+    'float': 'Double',
+    'double': 'Double',
+    'str': 'String',
+    'string': 'String'
+}
 
 
 def guess_type(name, default, type_str):
     # We do our best to find types among int, float/double, strings.
     if default is not None:
-        return type(default).__name__
+        type_name = type(default).__name__
+        if type_name in TypeMappings:
+            return TypeMappings[type_name]
 
     if type_str is None:
         return None
     
-    for pattern, string_type in PATTERNS:
+    for pattern, string_type in TypeMappings.items():
         if type_str == pattern:
             return string_type
         if re.search('^{}\W|\W{}\W|\W{}$'.format(pattern, pattern, pattern), type_str, re.I) is not None:
@@ -79,7 +81,7 @@ def parse_param(name, doc, has_default=False, default=None, type_=None):
         desc['default'] = default
 
     # TODO: Should we be more clever?
-    if type_  != inspect._empty:
+    if type_ != inspect._empty:
         dss_type = to_dsstype(type_)
         if dss_type is not None:
             desc['type'] = dss_type 
