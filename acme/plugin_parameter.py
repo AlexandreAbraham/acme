@@ -64,18 +64,19 @@ class PluginParameter:
     def __init__(self, raw_parameter):
         self.name = raw_parameter.get("name")
         self.screen_name = raw_parameter.get("screen_name", self.name)
-        self.description = raw_parameter.get("description").replace("\n", " ")
+        self.description = raw_parameter.get("description", "").replace("\n", " ")
         self.default_value = raw_parameter.get('default', None)
-        self.grid_param = raw_parameter.get('grid_param', None)
+        self.grid_param = raw_parameter.get('grid_param', True)
         self.var_type = None
         if raw_parameter.get('type', None) is not None:
             self.var_type = VarType[raw_parameter['type']]
         self.specs = raw_parameter.get('specs', "")
+        self.selected = True
 
 
 class AcmeType:
 
-    def get_dss_json(self):
+    def get_dss_json(self, parameter):
         raise NotImplementedError()
 
     def __str__(self):
@@ -84,8 +85,8 @@ class AcmeType:
 
 class AcmeInteger:
 
-    def get_dss_json(self):
-        return vars(DoublesPluginWriter(self.parameter))
+    def get_dss_json(self, parameter):
+        return vars(DoublesPluginWriter(parameter))
 
     def get_cast(self):
         return 'int'
@@ -95,19 +96,21 @@ class AcmeInteger:
         
 class AcmeDouble:
 
-    def get_dss_json(self):
-        return vars(DoublesPluginWriter(self.parameter))
+    def get_dss_json(self, parameter):
+        return vars(DoublesPluginWriter(parameter))
 
     def get_cast(self):
-        return 'double'
+        return 'float'
 
     def __str__(self):
         return 'Double'
 
 class AcmeString:
 
-    def get_dss_json(self):
-        return vars(StringsPluginWriter(self.parameter))
+    def get_dss_json(self, parameter):
+        if isinstance(parameter.specs, set):
+            return vars(MultiSelectPluginWriter(parameter, parameter.specs))
+        return vars(StringsPluginWriter(parameter))
 
     def get_cast(self):
         return 'str'
@@ -117,8 +120,8 @@ class AcmeString:
 
 class AcmeBoolean:
 
-    def get_dss_json(self):
-        return vars(StringsPluginWriter(self.parameter))
+    def get_dss_json(self, parameter):
+        return vars(StringsPluginWriter(parameter))
 
     def get_cast(self):
         return 'bool'
@@ -128,8 +131,8 @@ class AcmeBoolean:
 
 class AcmeRandomState:
 
-    def get_dss_json(self):
-        return vars(IntPluginWriter(self.parameter))
+    def get_dss_json(self, parameter):
+        return vars(IntPluginWriter(parameter))
 
     def get_cast(self):
         return 'int'

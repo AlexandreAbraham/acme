@@ -18,6 +18,16 @@ class Curtain:
             self.target.layout.display = ('block' if event['owner'].value else 'none')
 
 
+class BooleanSpecs:
+
+    def __init__(self, specs):
+        self.specs = specs
+
+    def __call__(self, event):
+        if event['type'] == 'change' and event['name'] == 'value' and event['new'] == VarType.Boolean:
+            self.specs.value = '{True, False}'
+
+
 class ArgLoader:
 
     def __init__(self, functions, dropdown):
@@ -93,16 +103,18 @@ class InteractiveRefiner:
             name = wg.Text(description='Screen name', value=id_to_screen_name(param.screen_name), layout=layout, style=style)
             type_ = wg.Dropdown(description='Type', options=[(str(t.value), t) for t in VarType],
                                 value=param.var_type, layout=layout, style=style)
+            grid_param = wg.Checkbox(description='Grid-searchable', value=param.var_type != VarType.RandomState, indent=False)
             default = wg.Text(description='Default', value=str(param.default_value), layout=layout, style=style)
             specs = wg.Text(description='Possible values', value=str(param.specs), layout=layout, style=style)
             specs_details = wg.Label(value='Possible values can be [Lower, Upper] or {"A","B","C"} or range(min, max, step)', layout=layout, style=style)
 
-            box = wg.VBox([name, type_, default, specs, specs_details])
+            box = wg.VBox([name, type_, grid_param, default, specs, specs_details])
             box.layout.margin = "0 0 0 50px"
             box.layout.width = 'auto'
 
             selected.observe(Curtain(box))
-            self.parameters_widgets.append(dict(selected=selected, name=name, type=type_, specs=specs, default=default))
+            type_.observe(BooleanSpecs(specs))
+            self.parameters_widgets.append(dict(selected=selected, name=name, type=type_, specs=specs, default=default, grid_param=grid_param))
             self.boxes.append(selected)
             self.boxes.append(box)
 
@@ -169,16 +181,17 @@ class ModelRefiner:
             }
 
         for param, param_widget in zip(self.parameters, interactive_refiner.parameters_widgets):
-            param['selected'] = param_widget['selected'].value
-            param['type'] = param_widget['type'].value
-            param['default_value'] = cast_string(param_widget['default'].value)
-            param['screen_name'] = param_widget['name'].value
+            param.selected = param_widget['selected'].value
+            param.var_type = param_widget['type'].value
+            param.default_value = cast_string(param_widget['default'].value)
+            param.screen_name = param_widget['name'].value
+            param.grid_param = param_widget['grid_param'].value
             try:
                 specs = literal_eval(param_widget['specs'].value)
                 if type(specs) not in [list, set]:
                     print('[{}] Specs not a set or a list'.format(param['name']))
                 else:
-                    param['specs'] = specs
+                    param.specs = specs
             except:
                 pass
 

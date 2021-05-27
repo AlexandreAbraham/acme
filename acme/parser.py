@@ -18,7 +18,10 @@ TypeMappings = {
 
 
 def guess_type(name, default, type_str):
-    # We do our best to find types among int, float/double, strings.
+    # We do our best to find types among int, float/double, strings, random_state
+    if name == "random_state":
+        return "RandomState"
+
     if default is not None:
         type_name = type(default).__name__
         if type_name in TypeMappings:
@@ -86,10 +89,13 @@ def parse_param(name, doc, has_default=False, default=None, type_=None):
         if dss_type is not None:
             desc['type'] = dss_type 
     
+    if desc['type'] is None:
+        desc['type'] = guess_type(name, desc.get('default', None), doc.type_name if doc is not None else None)
+
     if doc is not None:
-        desc['description'] = doc.description
-        if desc['type'] is None:
-            desc['type'] = guess_type(name, desc.get('default', None), doc.type_name)
+        if doc.description is not None:
+            desc['description'] = doc.description
+
         if doc.type_name is not None:
             desc['specs'] = guess_specs(doc.type_name)
 

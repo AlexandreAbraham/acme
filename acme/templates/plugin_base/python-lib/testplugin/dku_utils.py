@@ -1,53 +1,22 @@
-def cast_parameters(params):
-    formatted_params = params.copy()
-    for param_name, param_value in params.items():
-        if type(param_value) is list:
-            formatted_param_values = []
-            if len(param_value) == 0:
-                # drop empty lists to prevent grid search from failing
-                formatted_params.pop(param_name)
-            else:
-                for value in param_value:
-                    formatted_param_values.append(format_parameter_value(value))
-                formatted_params[param_name] = formatted_param_values
-        else:
-            formatted_params[param_name] = format_parameter_value(param_value)
-    return formatted_params
-
-
-def format_parameter_value(parameter_value):
-    if isinstance(parameter_value, str):
-        return cast_string(parameter_value)
-    else:
-        return parameter_value
-
-
-def cast_string(s):
-    if s == "True":
-        return True
-    elif s == "False":
-        return False
-    elif s == "None" or s == "":
-        return None
-    elif is_int(s):
-        return int(s)
-    elif is_float(s):
-        return float(s)
-    else:
-        return s
-
-
-def is_int(s):
-    try:
-        int(s)
-        return True
-    except (ValueError, TypeError):
-        return False
-
-
-def is_float(s):
-    try:
-        float(s)
-        return True
-    except (ValueError, TypeError):
-        return False
+def check_and_cast(name, value, python_type, grid_param, specs):
+    if value is None or value == []:
+        return value
+    if grid_param:
+        value = [check_and_cast(name, v, python_type, False, specs) for v in value]
+        return value
+    value = python_type(value)
+    if specs is not None:
+        # Specs is either a list of 2 values indicating bounds
+        # Or a set of possible values
+        if isinstance(specs, set):
+            if not value in specs:
+                raise ValueError('Parameter {} has value {} which is not in accepted values {}'.format(
+                    name, value, specs))
+        elif isinstance(specs, list):
+            if specs[0] is not None and value < specs[0]:
+                raise ValueError('Parameter {} has value {} which is below the lower bound {}'.format(
+                    name, value, specs[0]))
+            if specs[1] is not None and value > specs[1]:
+                raise ValueError('Parameter {} has value {} which is above the upper bound {}'.format(
+                    name, value, specs[1]))
+    return value

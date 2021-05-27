@@ -3,7 +3,9 @@ import shutil
 from pathlib import Path
 
 from . import templates
-from .constants import python_recipe_template, DSSType, custom_fit_template, custom_predict_template, model_wrapper_template, macro_template
+from .constants import (python_recipe_template, DSSType, custom_fit_template,
+                        custom_predict_template, model_wrapper_template, macro_template,
+                        parameter_check_template)
 
 
 class PluginGenerator:
@@ -54,8 +56,8 @@ class PluginGenerator:
         algo_dict["meta"]["description"] = refined_module.module_short_description
         algo_dict["predictionTypes"] = refined_module.prediction_type.value
         for parameter in refined_module.parameters:
-            if parameter.get('selected', True):
-                algo_dict["params"].append(parameter.get_dss_json())
+            if parameter.selected:
+                algo_dict["params"].append(parameter.var_type.value.get_dss_json(parameter))
 
         algorithm_name = refined_module.module_name
         Path(f"{self.plugin_repository}/python-prediction-algos/{algorithm_name}").mkdir(parents=True, exist_ok=True)
@@ -64,17 +66,28 @@ class PluginGenerator:
 
     def _write_algo_py(self, refined_module, wrapped=False):
         if wrapped:
-            import_statement = f"from model_wrapper import Wrapped{refined_module.module_name} as {refined_module.module_name}"
+            import_statement = f"from wrapped_{refined_module.module_name} import Wrapped{refined_module.module_name} as {refined_module.module_name}"
         else:
             import_statement = refined_module.import_statement
         
         random_state_code_snippet = ""
         if self.has_random_state_param(refined_module):
-            random_state_code_snippet = "random_state = formatted_parameters.get('random_state', None)"
+            random_state_code_snippet = "random_state = formatted_params.get('random_state', None)"
+
+        checks = ['']
+        for parameter in refined_module.parameters:
+            if not parameter.selected:
+                continue
+            if parameter.var_type.value.get_cast() is None:
+                raise ValueError('Type of parameter {} not specified.'.format(parameter.name))
+            checks.append(parameter_check_template.format(
+                name=parameter.name, cast=parameter.var_type.value.get_cast(), 
+                grid=parameter.grid_param, specs=parameter.specs))
+        checks = '\n        '.join(checks)
 
         formatted_code = python_recipe_template.format(
             import_statement=import_statement, module_name=refined_module.module_name,
-            random_state_snippet=random_state_code_snippet)
+            random_state_snippet=random_state_code_snippet, parameter_checks=checks)
         with open(f"{self.plugin_repository}/python-prediction-algos/{refined_module.module_name}/algo.py", "w") as outfile:
             outfile.write(formatted_code)
 
@@ -106,7 +119,7 @@ class PluginGenerator:
 
         wrapper = model_wrapper_template.format(import_statement=refined_module.import_statement, class_name=refined_module.module_name, fit=fit, predict=predict)
         Path(f"{self.plugin_repository}/python-lib").mkdir(parents=True, exist_ok=True)
-        with open(f"{self.plugin_repository}/python-lib/model_wrapper.py", "w") as outfile:
+        with open(f"{self.plugin_repository}/python-lib/wrapped_{}.py".format(refined_module.name), "w") as outfile:
             outfile.write(wrapper)
         return True
 
@@ -132,7 +145,7 @@ class PluginGenerator:
 
     def has_random_state_param(self, refined_module):
         for parameter in refined_module.parameters:
-            if "random_state" == parameter['name']:
+            if "random_state" == parameter.name:
                 return True
         return False
 
