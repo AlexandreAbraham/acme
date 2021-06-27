@@ -7,48 +7,46 @@ import importlib
 from .constants import DSSPredType
 
 
-PATTERNS = [
-    ('int', DSSType.INT),
-    ('integer', DSSType.INT),
-    ('float', DSSType.DOUBLES),
-    ('double', DSSType.DOUBLES),
-    ('str', DSSType.STRINGS),
-    ('string', DSSType.STRINGS)
-]
-
-def to_dsstype(type_):
-    if type_ == int:
-        return DSSType.INT
-    if type_ == float:
-        return DSSType.DOUBLES
-    if type_ == str:
-        return DSSType.STRINGS
-    return None
+TypeMappings = {
+    'int': 'Integer',
+    'integer': 'Integer',
+    'float': 'Double',
+    'double': 'Double',
+    'str': 'String',
+    'string': 'String',
+    'bool': 'Boolean'
+}
 
 
 def guess_type(name, default, type_str):
-    # We do our best to find types among int, float/double, strings.
+    # We do our best to find types among int, float/double, strings, random_state
+    if name == "random_state":
+        return "RandomState"
+
     if default is not None:
-        dss_type = to_dsstype(type(default))
-        if dss_type is not None:
-            return dss_type
+        type_name = type(default).__name__
+        if type_name in TypeMappings:
+            return TypeMappings[type_name]
 
     if type_str is None:
         return None
     
-    for pattern, dss_type in PATTERNS:
+    for pattern, string_type in TypeMappings.items():
         if type_str == pattern:
-            return dss_type
+            return string_type
         if re.search('^{}\W|\W{}\W|\W{}$'.format(pattern, pattern, pattern), type_str, re.I) is not None:
-            return dss_type 
+            return string_type 
 
     return None
 
 
-def guess_specs(type_):
+def guess_specs(name, var_type, type_name):
     # We look for {elt, elt} or [elt, elt], elt being a number or a string
+    if var_type == 'Boolean':
+        return '{True, False}'
+
     try:
-        match = re.match("\[[a-zA-Z'\",0-9\.\s]+\]", type_)
+        match = re.match("\[[a-zA-Z'\",0-9\.\s]+\]", type_name)
         if match is not None:
             value = literal_eval(match.group(0))
             return value
@@ -56,7 +54,7 @@ def guess_specs(type_):
         pass
 
     try:
-        match = re.match("\{[a-zA-Z'\",0-9\.\s]+\}", type_)
+        match = re.match("\{[a-zA-Z'\",0-9\.\s]+\}", type_name)
         if match is not None:
             value = literal_eval(match.group(0))
             return value
@@ -90,17 +88,23 @@ def parse_param(name, doc, has_default=False, default=None, type_=None):
         desc['default'] = default
 
     # TODO: Should we be more clever?
-    if type_  != inspect._empty:
+    if type_ != inspect._empty:
         dss_type = to_dsstype(type_)
         if dss_type is not None:
             desc['type'] = dss_type 
     
+    if desc['type'] is None:
+        desc['type'] = guess_type(name, desc.get('default', None), doc.type_name if doc is not None else None)
+
     if doc is not None:
-        desc['description'] = doc.description
-        if desc['type'] is None:
-            desc['type'] = guess_type(name, desc.get('default', None), doc.type_name)
-        if doc.type_name is not None:
-            desc['specs'] = guess_specs(doc.type_name)
+        if doc.description is not None:
+            desc['description'] = doc.description
+
+    type_name = ''
+    if doc is not None and doc.type_name is not None:
+        type_name = doc.type_name
+
+    desc['specs'] = guess_specs(name, desc.get('type', None), type_name)
 
     return desc
 

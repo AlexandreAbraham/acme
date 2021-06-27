@@ -4,17 +4,20 @@ TYPE_MAPPING = {int: "DOUBLES", float: "DOUBLES"}
 
 python_recipe_template = u"""from dataiku.doctor.plugins.custom_prediction_algorithm import BaseCustomPredictionAlgorithm
 {import_statement}
-from dku_utils import cast_parameters
+from dku_utils import check_and_cast
 
 class CustomPredictionAlgorithm(BaseCustomPredictionAlgorithm):    
     def __init__(self, prediction_type=None, params=None):    
-        formatted_parameters = cast_parameters(params)
+        formatted_params = dict()
+{parameter_checks}
         self.clf = {module_name}({random_state_snippet})
-        super(CustomPredictionAlgorithm, self).__init__(prediction_type, formatted_parameters)
+        super(CustomPredictionAlgorithm, self).__init__(prediction_type, formatted_params)
     
     def get_clf(self):
         return self.clf
 """
+
+parameter_check_template = 'formatted_params["{name}"] = check_and_cast("{name}", params["{name}"], {cast}, {grid}, {specs})'
 
 
 class DSSPredType(Enum):
