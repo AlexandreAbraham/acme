@@ -1,6 +1,6 @@
 from ast import literal_eval
 
-from .constants import DSSType
+from .constants import DSSType, DSSPredType
 
 
 def id_to_screen_name(id_name):
@@ -32,7 +32,7 @@ class ArgLoader:
 
 class InteractiveRefiner:
 
-    def __init__(self, functions, parameters):
+    def __init__(self, refiner):
         import ipywidgets as wg
         self.parameters_widgets = []
         self.custom_fit_widgets = None
@@ -40,6 +40,17 @@ class InteractiveRefiner:
         self.boxes = []
         layout = {'width': 'auto'}
         style = {'description_width': '120px'}
+        functions = refiner.functions
+        parameters = refiner.parameters
+
+        self.import_statement_widget = wg.Text(description='Import statement', value=refiner.import_statement, layout=layout, style=style)
+        self.boxes.append(self.import_statement_widget)
+
+        self.prediction_type_widget = wg.Dropdown(description='Prediction type', value=refiner.prediction_type, options=[
+            ('Regression', DSSPredType.REGRESSION),
+            ('Classification', DSSPredType.CLASSIFICATION),
+            ('Clustering', DSSPredType.CLUSTERING)], layout=layout, style=style)
+        self.boxes.append(self.prediction_type_widget)
 
         if functions is not None:
             custom_fit = wg.Checkbox(description='Custom fit function', value=False, indent=False)
@@ -109,7 +120,12 @@ class ModelRefiner:
         self.module_short_description = format_description(parsed_docstring.get("short_description", ""))
         self.module_long_description = format_description(parsed_docstring.get("long_description", ""))
         self.module_name = parsed_docstring['name']
-        self.import_name = parsed_docstring.get('import_name', None)
+        self.prediction_type = DSSPredType.CLASSIFICATION
+        if parsed_docstring.get('prediction_type', None) is not None:
+            self.prediction_type = DSSPredType[parsed_docstring.get('prediction_type').upper()]
+        self.import_statement = None
+        if 'import_name' in parsed_docstring:
+            self.import_statement = "from {} import {}".format(parsed_docstring['import_name'], self.module_name)
         self.parameters = []
         self.functions = parsed_docstring.get('functions', None)
         self.custom_fit = None
@@ -135,9 +151,12 @@ class ModelRefiner:
         return parsed_parameters
 
     def get_interactive_refiner(self):
-        return InteractiveRefiner(self.functions, self.parameters)
+        return InteractiveRefiner(self)
 
     def update(self, interactive_refiner):
+
+        self.import_statement = interactive_refiner.import_statement_widget.value
+        self.prediction_type = interactive_refiner.prediction_type_widget.value
 
         fit = interactive_refiner.custom_fit_widgets
         if fit is not None and fit['chk'].value:
