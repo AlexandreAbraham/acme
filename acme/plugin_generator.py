@@ -119,7 +119,7 @@ class PluginGenerator:
 
         wrapper = model_wrapper_template.format(import_statement=refined_module.import_statement, class_name=refined_module.module_name, fit=fit, predict=predict)
         Path(f"{self.plugin_repository}/python-lib").mkdir(parents=True, exist_ok=True)
-        with open(f"{self.plugin_repository}/python-lib/wrapped_{}.py".format(refined_module.name), "w") as outfile:
+        with open(f"{self.plugin_repository}/python-lib/wrapped_{refined_module.module_name}.py", "w") as outfile:
             outfile.write(wrapper)
         return True
 

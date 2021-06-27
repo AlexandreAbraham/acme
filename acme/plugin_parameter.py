@@ -121,7 +121,7 @@ class AcmeString:
 class AcmeBoolean:
 
     def get_dss_json(self, parameter):
-        return vars(StringsPluginWriter(parameter))
+        return vars(MultiSelectPluginWriter(parameter, parameter.specs))
 
     def get_cast(self):
         return 'bool'

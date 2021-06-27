@@ -13,7 +13,8 @@ TypeMappings = {
     'float': 'Double',
     'double': 'Double',
     'str': 'String',
-    'string': 'String'
+    'string': 'String',
+    'bool': 'Boolean'
 }
 
 
@@ -39,10 +40,13 @@ def guess_type(name, default, type_str):
     return None
 
 
-def guess_specs(type_):
+def guess_specs(name, var_type, type_name):
     # We look for {elt, elt} or [elt, elt], elt being a number or a string
+    if var_type == 'Boolean':
+        return '{True, False}'
+
     try:
-        match = re.match("\[[a-zA-Z'\",0-9\.\s]+\]", type_)
+        match = re.match("\[[a-zA-Z'\",0-9\.\s]+\]", type_name)
         if match is not None:
             value = literal_eval(match.group(0))
             return value
@@ -50,7 +54,7 @@ def guess_specs(type_):
         pass
 
     try:
-        match = re.match("\{[a-zA-Z'\",0-9\.\s]+\}", type_)
+        match = re.match("\{[a-zA-Z'\",0-9\.\s]+\}", type_name)
         if match is not None:
             value = literal_eval(match.group(0))
             return value
@@ -96,8 +100,11 @@ def parse_param(name, doc, has_default=False, default=None, type_=None):
         if doc.description is not None:
             desc['description'] = doc.description
 
-        if doc.type_name is not None:
-            desc['specs'] = guess_specs(doc.type_name)
+    type_name = ''
+    if doc is not None and doc.type_name is not None:
+        type_name = doc.type_name
+
+    desc['specs'] = guess_specs(name, desc.get('type', None), type_name)
 
     return desc
 
