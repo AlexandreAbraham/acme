@@ -1,4 +1,4 @@
-# Automated Conversion of Modules to Extension
+# Automated Conversion of Modules to Extension for Dataiku
 
 ## First use
 - To install ACME: 
