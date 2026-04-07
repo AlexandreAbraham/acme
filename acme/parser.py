@@ -18,6 +18,10 @@ TypeMappings = {
 }
 
 
+def to_dsstype(t):
+    return TypeMappings.get(t)
+
+
 def guess_type(name, default, type_str):
     # We do our best to find types among int, float/double, strings, random_state
     if name == "random_state":

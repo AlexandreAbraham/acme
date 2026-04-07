@@ -1,5 +1,9 @@
 # Automated Conversion of Modules to Extension for Dataiku
 
+## Requirements
+
+`pip install pipdeptree` for dependecy discovery
+
 ## First use
 - To install ACME: 
   1) `git clone git@github.com:AlexandreAbraham/acme.git`
