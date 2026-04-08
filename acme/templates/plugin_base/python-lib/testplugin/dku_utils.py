@@ -4,7 +4,15 @@ def check_and_cast(name, value, python_type, grid_param, specs):
     if grid_param:
         value = [check_and_cast(name, v, python_type, False, specs) for v in value]
         return value
-    value = python_type(value)
+    if isinstance(value, list):
+        value = value[0]
+    if python_type == bool:
+        if isinstance(value, str):
+            value = value.lower() in ('true', '1', 'yes')
+        else:
+            value = bool(value)
+    else:
+        value = python_type(value)
     if specs is not None:
         # Specs is either a list of 2 values indicating bounds
         # Or a set of possible values

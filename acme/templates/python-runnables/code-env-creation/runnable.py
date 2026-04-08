@@ -14,11 +14,12 @@ class MyRunnable(Runnable):
         return None
 
     def run(self, progress_callback):
-        code_env = self.client.create_code_env("PYTHON", {code_env_name}, "DESIGN_MANAGED", {"pythonInterpreter": "PYTHON36"})
+        code_env = self.client.create_code_env("PYTHON", {code_env_name}, "DESIGN_MANAGED", {"pythonInterpreter": "PYTHON311"})
 
         definition = code_env.get_definition()
         definition["desc"]["installCorePackages"] = True
-        definition["desc"]["installJupyterSupport"] = True
+        definition["desc"]["corePackagesSet"] = "AUTO"
+        definition["desc"]["installJupyterSupport"] = False
 
         definition["specPackageList"] = {packages_to_install}
 
@@ -27,6 +28,5 @@ class MyRunnable(Runnable):
 
         # Actually perform the installation
         code_env.update_packages()
-        code_env.set_jupyter_support(True)
         return "<span>DONE</span>"
 """

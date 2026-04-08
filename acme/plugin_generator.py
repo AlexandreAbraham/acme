@@ -70,10 +70,6 @@ class PluginGenerator:
         else:
             import_statement = refined_module.import_statement
         
-        random_state_code_snippet = ""
-        if self.has_random_state_param(refined_module):
-            random_state_code_snippet = "random_state = formatted_params.get('random_state', None)"
-
         checks = ['']
         for parameter in refined_module.parameters:
             if not parameter.selected:
@@ -87,7 +83,7 @@ class PluginGenerator:
 
         formatted_code = python_recipe_template.format(
             import_statement=import_statement, module_name=refined_module.module_name,
-            random_state_snippet=random_state_code_snippet, parameter_checks=checks)
+            parameter_checks=checks)
         with open(f"{self.plugin_repository}/python-prediction-algos/{refined_module.module_name}/algo.py", "w") as outfile:
             outfile.write(formatted_code)
 
@@ -151,8 +147,7 @@ class PluginGenerator:
 
 
 def add_dss_packages(requirements):
-    dss_packages = ["scikit-learn>=0.20,<0.21", "scipy>=1.2,<1.3", "xgboost==0.82", "statsmodels>=0.10,<0.11", "jinja2>=2.10,<2.11", "flask>=1.0,<1.1",
-                    "cloudpickle>=1.3,<1.6"]
+    dss_packages = ["scikit-learn>=1.1,<1.7", "xgboost==1.7.6", "lightgbm", "statsmodels", "Jinja2", "flask"]
     return dss_packages + requirements
 
 
