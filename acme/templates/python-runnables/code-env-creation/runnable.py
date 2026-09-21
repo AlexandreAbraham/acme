@@ -14,7 +14,16 @@ class MyRunnable(Runnable):
         return None
 
     def run(self, progress_callback):
-        code_env = self.client.create_code_env("PYTHON", {code_env_name}, "DESIGN_MANAGED", {"pythonInterpreter": "PYTHON311"})
+        versions = ['PYTHON311', 'PYTHON312']
+        code_env = None
+        for version in versions:
+            try:
+                code_env = self.client.create_code_env('PYTHON', 'neuralk', 'DESIGN_MANAGED', {'pythonInterpreter': version})
+            except:
+                continue
+            break
+        else:
+            raise ValueError('Python version error. No version available in ' + str(versions))
 
         definition = code_env.get_definition()
         definition["desc"]["installCorePackages"] = True
